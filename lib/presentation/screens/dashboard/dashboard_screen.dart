@@ -129,10 +129,10 @@ class _AutomationStatusCard extends ConsumerWidget {
           BoxShadow(
             color: (automation.isActive ? StatusColors.accepted : Colors.black)
                 .withValues(
-              alpha: automation.isActive ? 0.22 : 0.06,
+              alpha: automation.isActive ? 0.16 : 0.05,
             ),
-            blurRadius: 28,
-            offset: const Offset(0, 10),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
@@ -250,6 +250,7 @@ class _AutomationStatusCard extends ConsumerWidget {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: StatusColors.rejected,
                       foregroundColor: Colors.white,
+                      shadowColor: StatusColors.rejected.withValues(alpha: 0.35),
                     ),
                     onPressed: controller.stop,
                     icon: const Icon(Icons.stop_circle_outlined, size: 28),
@@ -263,6 +264,7 @@ class _AutomationStatusCard extends ConsumerWidget {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: StatusColors.accepted,
                       foregroundColor: Colors.white,
+                      shadowColor: StatusColors.accepted.withValues(alpha: 0.35),
                     ),
                     onPressed: controller.start,
                     icon: const Icon(Icons.play_circle_outline, size: 28),

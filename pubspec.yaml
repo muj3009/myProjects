@@ -52,6 +52,24 @@ flutter:
   uses-material-design: true
   assets:
     - assets/icons/
+  fonts:
+    # Manrope (OFL-licensed, bundled locally) rather than fetched at runtime
+    # via a fonts CDN — this app's whole premise is "nothing leaves the
+    # device" (see statistics_screen.dart), so a typeface shouldn't be the
+    # one thing that phones home. It's a single variable-weight file;
+    # each entry below just points Flutter at a different weight axis value.
+    - family: Manrope
+      fonts:
+        - asset: assets/fonts/Manrope-Variable.ttf
+          weight: 400
+        - asset: assets/fonts/Manrope-Variable.ttf
+          weight: 500
+        - asset: assets/fonts/Manrope-Variable.ttf
+          weight: 600
+        - asset: assets/fonts/Manrope-Variable.ttf
+          weight: 700
+        - asset: assets/fonts/Manrope-Variable.ttf
+          weight: 800
 
 # Driver-supplied artwork, pre-composited by tool/generate_icons.dart onto
 # properly padded/backgrounded square canvases (the source photo wasn't

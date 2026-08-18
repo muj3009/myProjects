@@ -23,13 +23,13 @@ class SectionCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: cardTheme.color,
         borderRadius:
-            shape?.borderRadius as BorderRadius? ?? BorderRadius.circular(24),
+            shape?.borderRadius as BorderRadius? ?? BorderRadius.circular(20),
         border: shape?.side != null ? Border.fromBorderSide(shape!.side) : null,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 24,
-            offset: const Offset(0, 8),
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
           ),
         ],
       ),

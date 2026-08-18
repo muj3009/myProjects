@@ -37,9 +37,9 @@ class TintedIconCircle extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: color.withValues(alpha: 0.45),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: color.withValues(alpha: 0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
           ),
         ],
       ),

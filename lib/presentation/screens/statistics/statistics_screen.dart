@@ -29,6 +29,7 @@ class StatisticsScreen extends ConsumerWidget {
           padding: const EdgeInsets.all(16),
           children: [
             SegmentedButton<StatsRange>(
+              showSelectedIcon: false,
               segments: const [
                 ButtonSegment(value: StatsRange.today, label: Text('Today')),
                 ButtonSegment(
