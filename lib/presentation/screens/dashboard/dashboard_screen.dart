@@ -1,0 +1,376 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../application/controllers/automation_controller.dart';
+import '../../../application/controllers/automation_state.dart';
+import '../../../application/state/settings_controller.dart';
+import '../../../application/state/statistics_controller.dart';
+import '../../../core/theme/app_theme.dart';
+import '../../../domain/enums/platform_type.dart';
+import '../../widgets/decision_badge.dart';
+import '../../widgets/section_card.dart';
+import '../../widgets/stat_tile.dart';
+import '../permissions/permissions_screen.dart';
+import '../simulation/simulation_screen.dart';
+
+/// Main screen (spec sections 4/31) — automation status, quick stats, and
+/// the two most important controls a driver needs: start and emergency stop.
+class DashboardScreen extends ConsumerWidget {
+  const DashboardScreen({super.key});
+
+  String _greeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return 'Good morning';
+    if (hour < 18) return 'Good afternoon';
+    return 'Good evening';
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final automation = ref.watch(automationControllerProvider);
+    final settings = ref.watch(settingsControllerProvider);
+    final stats = ref.watch(statisticsControllerProvider).statistics;
+
+    ref.listen<int>(
+      automationControllerProvider.select((s) => s.jobsProcessed),
+      (previous, next) {
+        if (previous != next) {
+          ref.read(statisticsControllerProvider.notifier).refresh();
+        }
+      },
+    );
+
+    return Scaffold(
+      appBar: AppBar(title: Text(settings.appName), centerTitle: false),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+        children: [
+          Text(_greeting(), style: Theme.of(context).textTheme.headlineLarge),
+          const SizedBox(height: 20),
+          _AutomationStatusCard(automation: automation),
+          const SizedBox(height: 16),
+          if (automation.lastJob != null) ...[
+            _LastJobCard(automation: automation),
+            const SizedBox(height: 16),
+          ],
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8, left: 4),
+            child: Text(
+              'TODAY',
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    letterSpacing: 1.2,
+                  ),
+            ),
+          ),
+          SectionCard(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                StatTile(
+                    label: 'Jobs seen',
+                    value: '${stats.jobsDetected}',
+                    icon: Icons.list_alt),
+                StatTile(
+                  label: 'Accepted',
+                  value: '${stats.jobsAccepted}',
+                  color: StatusColors.accepted,
+                  icon: Icons.check_circle,
+                ),
+                StatTile(
+                  label: 'Rejected',
+                  value: '${stats.jobsRejected}',
+                  color: StatusColors.rejected,
+                  icon: Icons.cancel,
+                ),
+                StatTile(
+                  label: 'Avg £/mile',
+                  value: '£${stats.averagePoundsPerMile.toStringAsFixed(2)}',
+                  icon: Icons.attach_money,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          if (!automation.isSupported)
+            _IosNotSupportedCard(reason: automation.unsupportedReason!),
+        ],
+      ),
+    );
+  }
+}
+
+class _AutomationStatusCard extends ConsumerWidget {
+  const _AutomationStatusCard({required this.automation});
+
+  final AutomationState automation;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(settingsControllerProvider);
+    final controller = ref.read(automationControllerProvider.notifier);
+    // The *effective* rule for whichever single platform is selected, not
+    // just the global default — a platform-specific override (Rules screen)
+    // can silently diverge from it. Showing the global rule here regardless
+    // let a disabled Uber-only override go completely unnoticed on a real
+    // device: the Dashboard kept saying "£2.00 Minimum/mile" while Uber jobs
+    // were actually being accepted with no £/mile check applied at all.
+    // "Both" platforms selected can't be collapsed into one number if they
+    // genuinely differ, so that case still shows the global rule.
+    final singlePlatform = switch (settings.platformSelection) {
+      PlatformSelection.uber => PlatformType.uber,
+      PlatformSelection.bolt => PlatformType.bolt,
+      PlatformSelection.both => null,
+    };
+    final minRule = singlePlatform != null
+        ? settings.rulesFor(singlePlatform).minimumPoundsPerMile
+        : settings.rules.minimumPoundsPerMile;
+
+    final statusColor =
+        automation.isActive ? StatusColors.accepted : Colors.grey;
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: (automation.isActive ? StatusColors.accepted : Colors.black)
+                .withValues(
+              alpha: automation.isActive ? 0.10 : 0.04,
+            ),
+            blurRadius: 20,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Card(
+        clipBehavior: Clip.antiAlias,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: BorderSide(
+            color: automation.isActive
+                ? StatusColors.accepted.withValues(alpha: 0.35)
+                : Theme.of(context)
+                    .colorScheme
+                    .outlineVariant
+                    .withValues(alpha: 0.7),
+          ),
+        ),
+        child: Container(
+          // A soft, colored wash instead of a flat card is what makes "on" vs
+          // "off" readable at a glance from across the car, not just from the
+          // small status word — a driver checking this mid-shift shouldn't
+          // have to read text to know automation is running.
+          decoration: BoxDecoration(
+            gradient: automation.isActive
+                ? LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      StatusColors.accepted.withValues(alpha: 0.14),
+                      StatusColors.accepted.withValues(alpha: 0.03),
+                    ],
+                  )
+                : null,
+          ),
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  _StatusDot(active: automation.isActive, color: statusColor),
+                  const SizedBox(width: 10),
+                  Text(
+                    automation.isActive
+                        ? 'AUTOMATION ACTIVE'
+                        : 'AUTOMATION OFF',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          color: automation.isActive
+                              ? StatusColors.accepted
+                              : null,
+                          letterSpacing: 0.3,
+                        ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Text(
+                automation.statusMessage,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: StatTile(
+                      label: 'Minimum / mile',
+                      value: minRule.enabled
+                          ? '£${minRule.value.toStringAsFixed(2)}'
+                          : 'Off',
+                      icon: Icons.speed,
+                    ),
+                  ),
+                  Expanded(
+                    child: StatTile(
+                      label: 'Platform',
+                      value: settings.platformSelection.name,
+                      icon: Icons.local_taxi_outlined,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              if (!automation.isSupported)
+                OutlinedButton.icon(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const SimulationScreen()),
+                  ),
+                  icon: const Icon(Icons.science_outlined),
+                  label: const Text('Open Simulation Mode'),
+                )
+              else if (automation.isActive)
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: StatusColors.rejected,
+                      foregroundColor: Colors.white,
+                    ),
+                    onPressed: controller.stop,
+                    icon: const Icon(Icons.stop_circle_outlined, size: 28),
+                    label: const Text('STOP AUTOMATION'),
+                  ),
+                )
+              else
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: StatusColors.accepted,
+                      foregroundColor: Colors.white,
+                    ),
+                    onPressed: controller.start,
+                    icon: const Icon(Icons.play_circle_outline, size: 28),
+                    label: const Text('START AUTOMATION'),
+                  ),
+                ),
+              if (automation.isSupported && !automation.isActive) ...[
+                const SizedBox(height: 8),
+                TextButton(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                        builder: (_) => const PermissionsScreen()),
+                  ),
+                  child: const Text('Check permissions / setup'),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _LastJobCard extends StatelessWidget {
+  const _LastJobCard({required this.automation});
+
+  final AutomationState automation;
+
+  @override
+  Widget build(BuildContext context) {
+    final job = automation.lastJob!;
+    return SectionCard(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'LAST JOB',
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      letterSpacing: 1.0,
+                    ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                job.fare != null
+                    ? '£${job.fare!.toStringAsFixed(2)}'
+                    : 'Fare unknown',
+                style: Theme.of(context).textTheme.headlineMedium,
+              ),
+              if (job.tripDistanceMiles != null)
+                Text(
+                  '${job.tripDistanceMiles!.toStringAsFixed(1)} miles'
+                  '${job.poundsPerMile != null ? ' · £${job.poundsPerMile!.toStringAsFixed(2)}/mile' : ''}',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant),
+                ),
+            ],
+          ),
+          DecisionBadge(decision: job.decision),
+        ],
+      ),
+    );
+  }
+}
+
+class _IosNotSupportedCard extends StatelessWidget {
+  const _IosNotSupportedCard({required this.reason});
+
+  final String reason;
+
+  @override
+  Widget build(BuildContext context) {
+    return SectionCard(
+      child: Row(
+        children: [
+          Icon(Icons.info_outline,
+              color: Theme.of(context).colorScheme.primary),
+          const SizedBox(width: 12),
+          Expanded(child: Text(reason)),
+        ],
+      ),
+    );
+  }
+}
+
+/// A ring-and-dot status indicator instead of a plain filled circle — the
+/// extra ring reads as a "live" signal (echoing the pulsing dot pattern
+/// drivers already recognise from Uber/Bolt's own "online" indicators) when
+/// automation is active, and collapses to a flat gray dot when it's off so
+/// the two states are unmistakable even at a glance.
+class _StatusDot extends StatelessWidget {
+  const _StatusDot({required this.active, required this.color});
+
+  final bool active;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 16,
+      height: 16,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          if (active)
+            Container(
+              width: 16,
+              height: 16,
+              decoration: BoxDecoration(
+                  shape: BoxShape.circle, color: color.withValues(alpha: 0.25)),
+            ),
+          Container(
+            width: 10,
+            height: 10,
+            decoration: BoxDecoration(shape: BoxShape.circle, color: color),
+          ),
+        ],
+      ),
+    );
+  }
+}

@@ -1,0 +1,180 @@
+08-11 17:26:10.535 D/JobFilterSwipe( 7367): findAndClickButtonByKeywords([confirm, match]): pkg=com.ubercab.driver found=false clicked=false
+08-11 17:26:16.743 I/adbd    (21676): adbd service requested 'shell,v2,TERM=xterm-256color:export ANDROID_LOG_TAGS=''; exec logcat '-v' 'time' 'JobFilterSwipe:D' 'AutomationController:D' '*:S''
+08-11 17:26:30.315 D/JobFilterSwipe( 7367): findAndClickButtonByKeywords([confirm, match]): pkg=com.ubercab.driver found=false clicked=false
+08-11 17:27:13.440 D/JobFilterSwipe( 7367): findAndClickButtonByKeywords([confirm, match]): pkg=com.ubercab.driver found=false clicked=false
+08-11 17:27:44.360 D/JobFilterSwipe( 7367): findAndClickButtonByKeywords([confirm, match]): pkg=com.ubercab.driver found=false clicked=false
+08-11 17:34:32.547 D/JobFilterSwipe(14158): findAndClickButtonByKeywords([confirm, match]): not found in any monitored window
+08-11 17:48:31.603 D/JobFilterSwipe(27847): captureScreenshot: calling takeScreenshot()
+08-11 17:48:31.635 D/JobFilterSwipe(27847): captureScreenshot: onSuccess after 32ms
+08-11 17:49:04.062 D/JobFilterSwipe(27847): captureScreenshot: calling takeScreenshot()
+08-11 17:49:07.119 D/JobFilterSwipe(27847): captureScreenshot: onSuccess after 3057ms
+08-11 17:49:11.731 D/JobFilterSwipe(27847): captureScreenshot: calling takeScreenshot()
+08-11 17:49:11.749 D/JobFilterSwipe(27847): captureScreenshot: onSuccess after 18ms
+08-11 17:49:17.174 D/JobFilterSwipe(27847): captureScreenshot: calling takeScreenshot()
+08-11 17:49:17.187 D/JobFilterSwipe(27847): captureScreenshot: onSuccess after 13ms
+08-11 17:49:42.272 D/JobFilterSwipe(27847): captureScreenshot: calling takeScreenshot()
+08-11 17:49:42.940 D/JobFilterSwipe(27847): captureScreenshot: onSuccess after 669ms
+08-11 17:50:02.986 D/JobFilterSwipe(27847): captureScreenshot: calling takeScreenshot()
+08-11 17:50:04.339 D/JobFilterSwipe(27847): captureScreenshot: onSuccess after 1353ms
+08-11 17:50:06.035 D/JobFilterSwipe(27847): findAndClickButtonByKeywords([confirm, match]): not found in any monitored window
+08-11 17:50:19.850 D/JobFilterSwipe(27847): captureScreenshot: calling takeScreenshot()
+08-11 17:50:20.189 D/JobFilterSwipe(27847): captureScreenshot: onSuccess after 339ms
+08-11 17:50:36.996 D/JobFilterSwipe(27847): captureScreenshot: calling takeScreenshot()
+08-11 17:50:38.062 D/JobFilterSwipe(27847): captureScreenshot: onSuccess after 1066ms
+08-11 17:50:58.796 D/JobFilterSwipe(27847): captureScreenshot: calling takeScreenshot()
+08-11 17:50:58.827 D/JobFilterSwipe(27847): captureScreenshot: onSuccess after 31ms
+08-11 17:51:00.443 D/JobFilterSwipe(27847): captureScreenshot: calling takeScreenshot()
+08-11 17:51:00.462 D/JobFilterSwipe(27847): captureScreenshot: onSuccess after 19ms
+08-11 17:51:21.358 D/JobFilterSwipe(27847): captureScreenshot: calling takeScreenshot()
+08-11 17:51:22.087 D/JobFilterSwipe(27847): captureScreenshot: onSuccess after 729ms
+08-11 17:51:23.389 D/JobFilterSwipe(27847): findAndClickButtonByKeywords([confirm, match]): not found in any monitored window
+08-11 17:51:43.133 D/JobFilterSwipe(27847): captureScreenshot: calling takeScreenshot()
+08-11 17:51:43.149 D/JobFilterSwipe(27847): captureScreenshot: onSuccess after 16ms
+08-11 17:52:09.167 D/JobFilterSwipe(27847): captureScreenshot: calling takeScreenshot()
+08-11 17:52:09.185 D/JobFilterSwipe(27847): captureScreenshot: onSuccess after 18ms
+08-11 17:52:15.344 D/JobFilterSwipe(27847): captureScreenshot: calling takeScreenshot()
+08-11 17:52:15.374 D/JobFilterSwipe(27847): captureScreenshot: onSuccess after 30ms
+08-11 17:52:18.581 D/JobFilterSwipe(27847): captureScreenshot: calling takeScreenshot()
+08-11 17:52:18.614 D/JobFilterSwipe(27847): captureScreenshot: onSuccess after 33ms
+08-11 17:52:22.866 D/JobFilterSwipe(27847): captureScreenshot: calling takeScreenshot()
+08-11 17:52:22.889 D/JobFilterSwipe(27847): captureScreenshot: onSuccess after 24ms
+08-11 17:52:27.243 D/JobFilterSwipe(27847): captureScreenshot: calling takeScreenshot()
+08-11 17:52:27.256 D/JobFilterSwipe(27847): captureScreenshot: onSuccess after 13ms
+08-11 17:52:31.511 D/JobFilterSwipe(27847): captureScreenshot: calling takeScreenshot()
+08-11 17:52:31.528 D/JobFilterSwipe(27847): captureScreenshot: onSuccess after 17ms
+08-11 17:52:33.960 D/JobFilterSwipe(27847): captureScreenshot: calling takeScreenshot()
+08-11 17:52:34.113 D/JobFilterSwipe(27847): captureScreenshot: onSuccess after 153ms
+08-11 17:52:35.428 D/JobFilterSwipe(27847): findAndClickButtonByKeywords([confirm, match]): not found in any monitored window
+08-11 17:52:53.875 D/JobFilterSwipe(27847): captureScreenshot: calling takeScreenshot()
+08-11 17:52:54.324 D/JobFilterSwipe(27847): captureScreenshot: onSuccess after 450ms
+08-11 17:52:55.591 D/JobFilterSwipe(27847): findAndClickButtonByKeywords([confirm, match]): not found in any monitored window
+08-11 17:53:11.838 D/JobFilterSwipe(27847): captureScreenshot: calling takeScreenshot()
+08-11 17:53:12.621 D/JobFilterSwipe(27847): captureScreenshot: onSuccess after 784ms
+08-11 17:53:14.087 D/JobFilterSwipe(27847): findAndClickButtonByKeywords([confirm, match]): not found in any monitored window
+08-11 17:53:32.817 D/JobFilterSwipe(27847): captureScreenshot: calling takeScreenshot()
+08-11 17:53:33.320 D/JobFilterSwipe(27847): captureScreenshot: onSuccess after 503ms
+08-11 17:53:35.050 D/JobFilterSwipe(27847): findAndClickButtonByKeywords([confirm, match]): not found in any monitored window
+08-11 17:54:01.465 D/JobFilterSwipe(27847): captureScreenshot: calling takeScreenshot()
+08-11 17:54:06.320 D/JobFilterSwipe(27847): captureScreenshot: onSuccess after 4855ms
+08-11 17:54:40.690 D/JobFilterSwipe(27847): captureScreenshot: calling takeScreenshot()
+08-11 17:54:40.909 D/JobFilterSwipe(27847): captureScreenshot: onSuccess after 220ms
+08-11 17:55:40.966 D/JobFilterSwipe(27847): captureScreenshot: calling takeScreenshot()
+08-11 17:55:42.138 D/JobFilterSwipe(27847): captureScreenshot: onSuccess after 1171ms
+08-11 17:57:33.398 D/JobFilterSwipe(12570): captureScreenshot: calling takeScreenshot()
+08-11 17:57:38.200 D/JobFilterSwipe(12570): captureScreenshot: onSuccess after 4803ms
+08-11 17:57:40.316 D/JobFilterSwipe(12570): captureScreenshot: calling takeScreenshot()
+08-11 17:57:40.338 D/JobFilterSwipe(12570): captureScreenshot: onSuccess after 22ms
+08-11 17:57:44.597 D/JobFilterSwipe(12570): captureScreenshot: calling takeScreenshot()
+08-11 17:57:44.613 D/JobFilterSwipe(12570): captureScreenshot: onSuccess after 16ms
+08-11 17:57:48.161 D/JobFilterSwipe(12570): captureScreenshot: calling takeScreenshot()
+08-11 17:57:48.180 D/JobFilterSwipe(12570): captureScreenshot: onSuccess after 19ms
+08-11 17:57:49.796 D/JobFilterSwipe(12570): monitoredWindowRoots: 3 window(s): [type=3 pkg=com.android.systemui title=Navigation bar hasRoot=true], [type=3 pkg=com.android.systemui title=null hasRoot=true], [type=1 pkg=com.ubercab.driver title=Uber Driver hasRoot=true]
+08-11 17:57:49.812 D/JobFilterSwipe(12570): findAndClickButtonByKeywords([confirm, match]): not found in any monitored window
+08-11 17:58:07.861 D/JobFilterSwipe(12570): captureScreenshot: calling takeScreenshot()
+08-11 17:58:08.727 D/JobFilterSwipe(12570): captureScreenshot: onSuccess after 866ms
+08-11 17:58:10.616 D/JobFilterSwipe(12570): monitoredWindowRoots: 4 window(s): [type=-1 pkg=com.android.systemui title=null hasRoot=true], [type=3 pkg=com.android.systemui title=Navigation bar hasRoot=true], [type=3 pkg=com.android.systemui title=null hasRoot=true], [type=1 pkg=com.ubercab.driver title=Uber Driver hasRoot=true]
+08-11 17:58:10.645 D/JobFilterSwipe(12570): findAndClickDeclineButton: not found in any monitored window
+08-11 17:58:24.360 D/JobFilterSwipe(12570): captureScreenshot: calling takeScreenshot()
+08-11 17:58:24.781 D/JobFilterSwipe(12570): captureScreenshot: onSuccess after 421ms
+08-11 17:58:28.056 D/JobFilterSwipe(12570): captureScreenshot: calling takeScreenshot()
+08-11 17:58:28.094 D/JobFilterSwipe(12570): captureScreenshot: onSuccess after 38ms
+08-11 17:58:34.359 D/JobFilterSwipe(12570): captureScreenshot: calling takeScreenshot()
+08-11 17:58:34.381 D/JobFilterSwipe(12570): captureScreenshot: onSuccess after 23ms
+08-11 17:58:36.776 D/JobFilterSwipe(12570): captureScreenshot: calling takeScreenshot()
+08-11 17:58:36.795 D/JobFilterSwipe(12570): captureScreenshot: onSuccess after 20ms
+08-11 17:58:41.192 D/JobFilterSwipe(12570): captureScreenshot: calling takeScreenshot()
+08-11 17:58:41.212 D/JobFilterSwipe(12570): captureScreenshot: onSuccess after 20ms
+08-11 17:58:45.457 D/JobFilterSwipe(12570): captureScreenshot: calling takeScreenshot()
+08-11 17:58:45.477 D/JobFilterSwipe(12570): captureScreenshot: onSuccess after 20ms
+08-11 17:58:49.876 D/JobFilterSwipe(12570): captureScreenshot: calling takeScreenshot()
+08-11 17:58:49.989 D/JobFilterSwipe(12570): captureScreenshot: onSuccess after 113ms
+08-11 17:58:54.103 D/JobFilterSwipe(12570): captureScreenshot: calling takeScreenshot()
+08-11 17:58:54.121 D/JobFilterSwipe(12570): captureScreenshot: onSuccess after 19ms
+08-11 17:58:58.569 D/JobFilterSwipe(12570): captureScreenshot: calling takeScreenshot()
+08-11 17:58:58.588 D/JobFilterSwipe(12570): captureScreenshot: onSuccess after 19ms
+08-11 17:59:02.837 D/JobFilterSwipe(12570): captureScreenshot: calling takeScreenshot()
+08-11 17:59:02.857 D/JobFilterSwipe(12570): captureScreenshot: onSuccess after 21ms
+08-11 17:59:08.069 D/JobFilterSwipe(12570): captureScreenshot: calling takeScreenshot()
+08-11 17:59:08.241 D/JobFilterSwipe(12570): captureScreenshot: onSuccess after 172ms
+08-11 17:59:09.768 D/JobFilterSwipe(12570): monitoredWindowRoots: 4 window(s): [type=-1 pkg=com.android.systemui title=null hasRoot=true], [type=3 pkg=com.android.systemui title=Navigation bar hasRoot=true], [type=3 pkg=com.android.systemui title=null hasRoot=true], [type=1 pkg=com.ubercab.driver title=Uber Driver hasRoot=true]
+08-11 17:59:09.786 D/JobFilterSwipe(12570): findAndClickButtonByKeywords([confirm, match]): not found in any monitored window
+08-11 17:59:24.567 D/JobFilterSwipe(12570): captureScreenshot: calling takeScreenshot()
+08-11 17:59:24.628 D/JobFilterSwipe(12570): captureScreenshot: onSuccess after 62ms
+08-11 17:59:28.901 D/JobFilterSwipe(12570): captureScreenshot: calling takeScreenshot()
+08-11 17:59:28.919 D/JobFilterSwipe(12570): captureScreenshot: onSuccess after 18ms
+08-11 17:59:31.829 D/JobFilterSwipe(12570): captureScreenshot: calling takeScreenshot()
+08-11 17:59:31.933 D/JobFilterSwipe(12570): captureScreenshot: onSuccess after 104ms
+08-11 17:59:33.213 D/JobFilterSwipe(12570): monitoredWindowRoots: 3 window(s): [type=3 pkg=com.android.systemui title=Navigation bar hasRoot=true], [type=3 pkg=com.android.systemui title=null hasRoot=true], [type=1 pkg=com.ubercab.driver title=Uber Driver hasRoot=true]
+08-11 17:59:33.262 D/JobFilterSwipe(12570): findAndClickButtonByKeywords([confirm, match]): not found in any monitored window
+08-11 17:59:51.726 D/JobFilterSwipe(12570): captureScreenshot: calling takeScreenshot()
+08-11 17:59:51.769 D/JobFilterSwipe(12570): captureScreenshot: onSuccess after 43ms
+08-11 17:59:56.030 D/JobFilterSwipe(12570): captureScreenshot: calling takeScreenshot()
+08-11 17:59:56.068 D/JobFilterSwipe(12570): captureScreenshot: onSuccess after 38ms
+08-11 18:00:00.308 D/JobFilterSwipe(12570): captureScreenshot: calling takeScreenshot()
+08-11 18:00:00.320 D/JobFilterSwipe(12570): captureScreenshot: onSuccess after 12ms
+08-11 18:00:03.644 D/JobFilterSwipe(12570): captureScreenshot: calling takeScreenshot()
+08-11 18:00:03.662 D/JobFilterSwipe(12570): captureScreenshot: onSuccess after 18ms
+08-11 18:00:09.295 D/JobFilterSwipe(12570): captureScreenshot: calling takeScreenshot()
+08-11 18:00:09.359 D/JobFilterSwipe(12570): captureScreenshot: onSuccess after 64ms
+08-11 18:00:10.257 D/JobFilterSwipe(12570): monitoredWindowRoots: 4 window(s): [type=-1 pkg=com.android.systemui title=null hasRoot=true], [type=3 pkg=com.android.systemui title=Navigation bar hasRoot=true], [type=3 pkg=com.android.systemui title=null hasRoot=true], [type=1 pkg=com.ubercab.driver title=Uber Driver hasRoot=true]
+08-11 18:00:10.294 D/JobFilterSwipe(12570): findAndClickButtonByKeywords([confirm, match]): not found in any monitored window
+08-11 18:00:28.123 D/JobFilterSwipe(12570): captureScreenshot: calling takeScreenshot()
+08-11 18:00:28.138 D/JobFilterSwipe(12570): captureScreenshot: onSuccess after 16ms
+08-11 18:00:29.723 D/JobFilterSwipe(12570): captureScreenshot: calling takeScreenshot()
+08-11 18:00:29.745 D/JobFilterSwipe(12570): captureScreenshot: onSuccess after 22ms
+08-11 18:00:34.157 D/JobFilterSwipe(12570): captureScreenshot: calling takeScreenshot()
+08-11 18:00:34.175 D/JobFilterSwipe(12570): captureScreenshot: onSuccess after 19ms
+08-11 18:00:38.440 D/JobFilterSwipe(12570): captureScreenshot: calling takeScreenshot()
+08-11 18:00:38.466 D/JobFilterSwipe(12570): captureScreenshot: onSuccess after 25ms
+08-11 18:00:42.853 D/JobFilterSwipe(12570): captureScreenshot: calling takeScreenshot()
+08-11 18:00:42.877 D/JobFilterSwipe(12570): captureScreenshot: onSuccess after 24ms
+08-11 18:00:47.100 D/JobFilterSwipe(12570): captureScreenshot: calling takeScreenshot()
+08-11 18:00:47.111 D/JobFilterSwipe(12570): captureScreenshot: onSuccess after 11ms
+08-11 18:00:51.517 D/JobFilterSwipe(12570): captureScreenshot: calling takeScreenshot()
+08-11 18:00:51.530 D/JobFilterSwipe(12570): captureScreenshot: onSuccess after 13ms
+08-11 18:00:55.782 D/JobFilterSwipe(12570): captureScreenshot: calling takeScreenshot()
+08-11 18:00:55.802 D/JobFilterSwipe(12570): captureScreenshot: onSuccess after 20ms
+08-11 18:01:00.218 D/JobFilterSwipe(12570): captureScreenshot: calling takeScreenshot()
+08-11 18:01:00.241 D/JobFilterSwipe(12570): captureScreenshot: onSuccess after 23ms
+08-11 18:01:05.297 D/JobFilterSwipe(12570): captureScreenshot: calling takeScreenshot()
+08-11 18:01:05.353 D/JobFilterSwipe(12570): captureScreenshot: onSuccess after 55ms
+08-11 18:01:08.915 D/JobFilterSwipe(12570): captureScreenshot: calling takeScreenshot()
+08-11 18:01:08.931 D/JobFilterSwipe(12570): captureScreenshot: onSuccess after 16ms
+08-11 18:01:14.096 D/JobFilterSwipe(12570): captureScreenshot: calling takeScreenshot()
+08-11 18:01:14.113 D/JobFilterSwipe(12570): captureScreenshot: onSuccess after 17ms
+08-11 18:01:17.633 D/JobFilterSwipe(12570): captureScreenshot: calling takeScreenshot()
+08-11 18:01:17.663 D/JobFilterSwipe(12570): captureScreenshot: onSuccess after 30ms
+08-11 18:01:21.917 D/JobFilterSwipe(12570): captureScreenshot: calling takeScreenshot()
+08-11 18:01:21.935 D/JobFilterSwipe(12570): captureScreenshot: onSuccess after 18ms
+08-11 18:01:26.315 D/JobFilterSwipe(12570): captureScreenshot: calling takeScreenshot()
+08-11 18:01:26.352 D/JobFilterSwipe(12570): captureScreenshot: onSuccess after 37ms
+08-11 18:01:30.630 D/JobFilterSwipe(12570): captureScreenshot: calling takeScreenshot()
+08-11 18:01:30.658 D/JobFilterSwipe(12570): captureScreenshot: onSuccess after 28ms
+08-11 18:01:39.712 D/JobFilterSwipe(12570): captureScreenshot: calling takeScreenshot()
+08-11 18:01:44.182 D/JobFilterSwipe(12570): captureScreenshot: onSuccess after 4470ms
+08-11 18:06:16.369 D/JobFilterSwipe(17667): captureScreenshot: calling takeScreenshot()
+08-11 18:06:25.742 D/JobFilterSwipe(17667): captureScreenshot: onSuccess after 9373ms
+08-11 18:06:45.698 D/JobFilterSwipe(17667): captureScreenshot: calling takeScreenshot()
+08-11 18:06:46.155 D/JobFilterSwipe(17667): captureScreenshot: onSuccess after 457ms
+08-11 18:06:48.330 D/JobFilterSwipe(17667): captureScreenshot: calling takeScreenshot()
+08-11 18:06:48.347 D/JobFilterSwipe(17667): captureScreenshot: onSuccess after 18ms
+08-11 18:06:53.781 D/JobFilterSwipe(17667): captureScreenshot: calling takeScreenshot()
+08-11 18:06:53.915 D/JobFilterSwipe(17667): captureScreenshot: onSuccess after 133ms
+08-11 18:06:55.279 D/JobFilterSwipe(17667): monitoredWindowRoots: 3 window(s): [type=3 pkg=com.android.systemui title=Navigation bar hasRoot=true], [type=3 pkg=com.android.systemui title=null hasRoot=true], [type=1 pkg=com.ubercab.driver title=Uber Driver hasRoot=true]
+08-11 18:06:55.299 D/JobFilterSwipe(17667): findAndClickButtonByKeywords([confirm, match]): miss in pkg=com.ubercab.driver, buttons seen: android.view.ViewGroup:"", android.view.ViewGroup:""
+08-11 18:06:55.300 D/JobFilterSwipe(17667): findAndClickButtonByKeywords([confirm, match]): not found in any monitored window
+08-11 18:07:10.249 D/JobFilterSwipe(17667): captureScreenshot: calling takeScreenshot()
+08-11 18:07:10.738 D/JobFilterSwipe(17667): captureScreenshot: onSuccess after 489ms
+08-11 18:07:33.544 D/JobFilterSwipe(17667): captureScreenshot: calling takeScreenshot()
+08-11 18:07:34.544 D/JobFilterSwipe(17667): captureScreenshot: onSuccess after 1001ms
+08-11 18:07:35.943 D/JobFilterSwipe(17667): monitoredWindowRoots: 3 window(s): [type=3 pkg=com.android.systemui title=Navigation bar hasRoot=true], [type=3 pkg=com.android.systemui title=null hasRoot=true], [type=1 pkg=com.ubercab.driver title=Uber Driver hasRoot=true]
+08-11 18:07:35.963 D/JobFilterSwipe(17667): findAndClickButtonByKeywords([confirm, match]): miss in pkg=com.ubercab.driver, buttons seen: android.view.ViewGroup:"", android.view.ViewGroup:""
+08-11 18:07:35.963 D/JobFilterSwipe(17667): findAndClickButtonByKeywords([confirm, match]): not found in any monitored window
+08-11 18:07:52.992 D/JobFilterSwipe(17667): captureScreenshot: calling takeScreenshot()
+08-11 18:07:57.618 D/JobFilterSwipe(17667): captureScreenshot: onSuccess after 4625ms
+08-11 18:12:39.469 D/JobFilterSwipe(17667): captureScreenshot: calling takeScreenshot()
+08-11 18:12:39.691 D/JobFilterSwipe(17667): captureScreenshot: onSuccess after 221ms
+08-11 18:14:38.870 D/JobFilterSwipe(17667): captureScreenshot: calling takeScreenshot()
+08-11 18:14:38.920 D/JobFilterSwipe(17667): captureScreenshot: onSuccess after 50ms
+08-11 18:16:38.868 D/JobFilterSwipe(17667): captureScreenshot: calling takeScreenshot()
+08-11 18:16:38.916 D/JobFilterSwipe(17667): captureScreenshot: onSuccess after 49ms

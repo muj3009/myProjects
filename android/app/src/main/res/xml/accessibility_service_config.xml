@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Spec section 14: minimum required capabilities only. `packageNames` scopes
+  every event this service receives to the two supported driver apps — the
+  system never delivers events from any other app to JobFilter, which is the
+  first line of defense against interacting with the wrong application.
+
+  canPerformGestures is required because Bolt's job-offer card is
+  accepted/rejected by swiping right/left on the card itself, not by
+  tapping a button (see JobAccessibilityService.swipeJobCard).
+
+  canTakeScreenshot lets Uber's fare/route text be read via OCR when the
+  accessibility tree doesn't expose it (see OcrTextProvider) — without this
+  attribute, AccessibilityService.takeScreenshot() throws a
+  SecurityException at runtime rather than failing at build time.
+
+  flagIncludeNotImportantViews: added after a real-device finding that this
+  service's own tree search for Uber's Confirm/Match button returned only
+  empty ViewGroups, while `uiautomator dump` (which runs via UiAutomation, a
+  separate, more privileged accessibility connection that includes
+  "not-important" views by default) saw the real, labeled Button nodes at
+  the exact same moment. By default, AccessibilityServices only receive
+  nodes Android considers "important for accessibility" — everything else
+  collapses into an empty placeholder in the exposed tree, which matches
+  that finding exactly. This flag is the public, documented way to ask for
+  the same full view as UiAutomation gets, with no ADB/root/private API
+  involved. If it doesn't fully resolve the gap, the diagnostic logging in
+  JobAccessibilityService (window type/displayId/bounds, and
+  isImportantForAccessibility per node) narrows down what does.
+
+  typeWindowsChanged: added after a real device proved
+  typeWindowStateChanged/typeWindowContentChanged alone never fire when
+  Uber shows its job-offer overlay while a DIFFERENT app is genuinely in
+  the foreground (both are scoped to whichever window Android currently
+  considers "active", which isn't Uber's overlay in that case) — no event
+  reached this service at all, so the badge never showed. typeWindowsChanged
+  instead fires whenever the set of visible windows changes at all (a
+  window added/removed/resized), independent of which app is "active" —
+  see JobAccessibilityService.onAccessibilityEvent for why it can't trust
+  this event's own packageName and re-scans `windows` directly instead.
+
+  notificationTimeout=0 (was 200): this is a deliberate minimum delay Android
+  inserts between successive events of the same type from the same source
+  before delivering the first one — a real device showed the decision badge
+  displaying "slightly late" relative to the job card appearing, and this
+  was pure unnecessary wait on top of capture+OCR time. Safe to drop to zero
+  because onAccessibilityEvent's own lastEmittedText check already discards
+  redundant re-processing of identical content, which is what this timeout
+  exists to protect against in the first place.
+
+  typeNotificationStateChanged: Bolt posts a genuine Android heads-up
+  notification ("New ride request") the instant an offer arrives — a real
+  device confirmed this is a system notification, not part of Bolt's own app
+  UI, and it stays visible for a while (the driver dismisses it manually,
+  not a short auto-timeout). It's a more immediate and reliable "a job just
+  arrived" signal than waiting for Bolt's in-app window content to change,
+  so onAccessibilityEvent uses it as an extra trigger to re-scan monitored
+  windows right away, on top of the existing typeWindowsChanged/
+  typeWindowContentChanged triggers.
+-->
+<accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:accessibilityEventTypes="typeWindowStateChanged|typeWindowContentChanged|typeWindowsChanged|typeNotificationStateChanged"
+    android:accessibilityFeedbackType="feedbackGeneric"
+    android:accessibilityFlags="flagReportViewIds|flagRetrieveInteractiveWindows|flagIncludeNotImportantViews"
+    android:canRetrieveWindowContent="true"
+    android:canPerformGestures="true"
+    android:canTakeScreenshot="true"
+    android:canRequestTouchExplorationMode="false"
+    android:notificationTimeout="0"
+    android:packageNames="com.ubercab.driver,ee.mtakso.driver"
+    android:description="@string/accessibility_service_description"/>

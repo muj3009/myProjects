@@ -1,0 +1,7 @@
+# Copy to android/key.properties (gitignored) and fill in real values before
+# building a signed release. See README.md "Building Android" for the full
+# keytool command and where to wire this into app/build.gradle.
+storePassword=REPLACE_ME
+keyPassword=REPLACE_ME
+keyAlias=jobfilter
+storeFile=../jobfilter-release.jks

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- A real device showed a plain white icon on a plain white splash
+         background had no visible edge at all — the funnel just looked
+         like it was floating with no card boundary, unlike the actual home
+         screen icon (which gets a visible rounded-square/circle boundary
+         from the OS's own adaptive-icon masking, something a raw bitmap
+         reference here doesn't get for free). A light neutral background —
+         matching the app's own light theme (AppTheme.light's
+         scaffoldBackgroundColor, 0xFFF6F7F9) — gives the white icon square
+         enough contrast to read as its own distinct card. -->
+    <item android:drawable="@color/splash_background"/>
+</layer-list>

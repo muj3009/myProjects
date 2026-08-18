@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Android 12+'s own SplashScreen API takes priority over the legacy
+         windowBackground drawable below it once running on API 31+ — a real
+         device showed the app's cold-start splash still using its own
+         theme-derived black background even after that drawable was fixed,
+         because this API reads these specific attributes instead.
+         Overridden here to match: white background, the same launcher icon
+         as everywhere else in the app. -->
+    <style name="LaunchTheme" parent="@android:style/Theme.Black.NoTitleBar">
+        <item name="android:windowBackground">@drawable/launch_background</item>
+        <item name="android:windowSplashScreenBackground">@color/splash_background</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+    </style>
+</resources>

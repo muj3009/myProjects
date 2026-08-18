@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">JobFilter</string>
+    <string name="accessibility_service_description">
+        Lets JobFilter read job offer text (fare, distance, pickup/destination) shown by
+        supported driver apps so it can evaluate your rules. JobFilter does not read
+        passwords or other app content, and only looks at the driver apps you\'ve enabled
+        in Settings.
+    </string>
+</resources>

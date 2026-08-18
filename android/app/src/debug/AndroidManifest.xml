@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Debug/profile builds only: needed for `flutter run`'s local dev
+         server and hot reload. Deliberately absent from the main manifest so
+         release builds carry no general INTERNET permission, matching the
+         on-device-only privacy commitment in docs/architecture.md. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+</manifest>
