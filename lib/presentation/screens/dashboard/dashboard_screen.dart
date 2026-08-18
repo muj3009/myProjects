@@ -9,7 +9,9 @@ import '../../../core/theme/app_theme.dart';
 import '../../../domain/enums/platform_type.dart';
 import '../../widgets/decision_badge.dart';
 import '../../widgets/section_card.dart';
+import '../../widgets/section_header.dart';
 import '../../widgets/stat_tile.dart';
+import '../../widgets/tinted_icon_circle.dart';
 import '../permissions/permissions_screen.dart';
 import '../simulation/simulation_screen.dart';
 
@@ -53,16 +55,7 @@ class DashboardScreen extends ConsumerWidget {
             _LastJobCard(automation: automation),
             const SizedBox(height: 16),
           ],
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8, left: 4),
-            child: Text(
-              'TODAY',
-              style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    letterSpacing: 1.2,
-                  ),
-            ),
-          ),
+          const SectionHeader('TODAY'),
           SectionCard(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -126,70 +119,91 @@ class _AutomationStatusCard extends ConsumerWidget {
         ? settings.rulesFor(singlePlatform).minimumPoundsPerMile
         : settings.rules.minimumPoundsPerMile;
 
-    final statusColor =
-        automation.isActive ? StatusColors.accepted : Colors.grey;
+    final statusColor = automation.isActive
+        ? StatusColors.accepted
+        : Theme.of(context).colorScheme.onSurfaceVariant;
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
             color: (automation.isActive ? StatusColors.accepted : Colors.black)
                 .withValues(
-              alpha: automation.isActive ? 0.10 : 0.04,
+              alpha: automation.isActive ? 0.22 : 0.06,
             ),
-            blurRadius: 20,
-            offset: const Offset(0, 6),
+            blurRadius: 28,
+            offset: const Offset(0, 10),
           ),
         ],
       ),
       child: Card(
         clipBehavior: Clip.antiAlias,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(28),
           side: BorderSide(
             color: automation.isActive
-                ? StatusColors.accepted.withValues(alpha: 0.35)
+                ? StatusColors.accepted.withValues(alpha: 0.4)
                 : Theme.of(context)
                     .colorScheme
                     .outlineVariant
                     .withValues(alpha: 0.7),
+            width: automation.isActive ? 1.5 : 1,
           ),
         ),
         child: Container(
-          // A soft, colored wash instead of a flat card is what makes "on" vs
-          // "off" readable at a glance from across the car, not just from the
-          // small status word — a driver checking this mid-shift shouldn't
-          // have to read text to know automation is running.
+          // A richer, saturated wash on *both* states (not just when active)
+          // is what keeps the card from looking flat/unfinished the moment
+          // automation is off — the color just shifts from green to the
+          // brand blue instead of disappearing entirely.
           decoration: BoxDecoration(
-            gradient: automation.isActive
-                ? LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      StatusColors.accepted.withValues(alpha: 0.14),
-                      StatusColors.accepted.withValues(alpha: 0.03),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: automation.isActive
+                  ? [
+                      StatusColors.accepted.withValues(alpha: 0.22),
+                      StatusColors.accepted.withValues(alpha: 0.04),
+                    ]
+                  : [
+                      Theme.of(context).colorScheme.primary.withValues(alpha: 0.10),
+                      Theme.of(context).colorScheme.primary.withValues(alpha: 0.02),
                     ],
-                  )
-                : null,
+            ),
           ),
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(22),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
-                  _StatusDot(active: automation.isActive, color: statusColor),
-                  const SizedBox(width: 10),
-                  Text(
-                    automation.isActive
-                        ? 'AUTOMATION ACTIVE'
-                        : 'AUTOMATION OFF',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: automation.isActive
-                              ? StatusColors.accepted
-                              : null,
-                          letterSpacing: 0.3,
+                  Expanded(
+                    child: Row(
+                      children: [
+                        _StatusDot(active: automation.isActive, color: statusColor),
+                        const SizedBox(width: 10),
+                        Flexible(
+                          child: Text(
+                            automation.isActive
+                                ? 'AUTOMATION ACTIVE'
+                                : 'AUTOMATION OFF',
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                  color: automation.isActive
+                                      ? StatusColors.accepted
+                                      : null,
+                                  letterSpacing: 0.3,
+                                ),
+                          ),
                         ),
+                      ],
+                    ),
+                  ),
+                  TintedIconCircle(
+                    icon: Icons.bolt,
+                    color: automation.isActive
+                        ? StatusColors.accepted
+                        : Theme.of(context).colorScheme.primary,
+                    diameter: 44,
+                    iconSize: 24,
                   ),
                 ],
               ),

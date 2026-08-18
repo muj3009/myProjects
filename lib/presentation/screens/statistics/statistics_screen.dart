@@ -5,6 +5,7 @@ import '../../../application/state/statistics_controller.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../domain/repositories/job_repository.dart';
 import '../../widgets/section_card.dart';
+import '../../widgets/section_header.dart';
 import '../../widgets/stat_tile.dart';
 import 'widgets/decision_breakdown_chart.dart';
 import 'widgets/jobs_trend_chart.dart';
@@ -56,14 +57,13 @@ class StatisticsScreen extends ConsumerWidget {
               JobsTrendChart(days: stats.dailyBreakdown),
             ],
             const SizedBox(height: 28),
-            _SectionHeader(label: 'AVERAGES'),
-            const SizedBox(height: 8),
+            const SectionHeader('AVERAGES'),
             SectionCard(
               child: GridView.count(
                 crossAxisCount: 2,
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                childAspectRatio: 2.4,
+                childAspectRatio: 1.7,
                 children: [
                   StatTile(
                     label: 'Average fare',
@@ -91,14 +91,13 @@ class StatisticsScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 28),
-            _SectionHeader(label: 'MONEY'),
-            const SizedBox(height: 8),
+            const SectionHeader('MONEY'),
             SectionCard(
               child: GridView.count(
                 crossAxisCount: 2,
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                childAspectRatio: 2.4,
+                childAspectRatio: 1.7,
                 children: [
                   StatTile(
                     label: 'Total potential fare',
@@ -122,26 +121,6 @@ class StatisticsScreen extends ConsumerWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 4),
-      child: Text(
-        label,
-        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-              letterSpacing: 1.2,
-            ),
       ),
     );
   }

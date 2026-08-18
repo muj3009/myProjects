@@ -126,7 +126,7 @@ class RulesScreen extends ConsumerWidget {
                       .withValues(alpha: 0.07),
                   activeColor: Theme.of(context).colorScheme.primary,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14)),
+                      borderRadius: BorderRadius.circular(16)),
                   onChanged: (mode) => controller.update(
                     (s) => s.copyWith(distanceCalculationMode: mode),
                   ),
@@ -144,7 +144,7 @@ class RulesScreen extends ConsumerWidget {
                       .withValues(alpha: 0.07),
                   activeColor: Theme.of(context).colorScheme.primary,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14)),
+                      borderRadius: BorderRadius.circular(16)),
                   onChanged: (mode) => controller.update(
                     (s) => s.copyWith(distanceCalculationMode: mode),
                   ),

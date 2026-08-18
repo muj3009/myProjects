@@ -8,6 +8,7 @@ import '../../../core/constants/app_constants.dart';
 import '../../../domain/enums/distance_unit.dart';
 import '../../../domain/enums/platform_type.dart';
 import '../../widgets/section_card.dart';
+import '../../widgets/tinted_icon_circle.dart';
 import '../debug/debug_screen.dart';
 import '../permissions/permissions_screen.dart';
 import '../simulation/simulation_screen.dart';
@@ -94,7 +95,7 @@ class SettingsScreen extends ConsumerWidget {
                         .withValues(alpha: 0.07),
                     activeColor: Theme.of(context).colorScheme.primary,
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14)),
+                        borderRadius: BorderRadius.circular(16)),
                     onChanged: (v) => controller
                         .update((s) => s.copyWith(platformSelection: v)),
                   ),
@@ -120,7 +121,7 @@ class SettingsScreen extends ConsumerWidget {
                         .withValues(alpha: 0.07),
                     activeColor: Theme.of(context).colorScheme.primary,
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14)),
+                        borderRadius: BorderRadius.circular(16)),
                     onChanged: (v) =>
                         controller.update((s) => s.copyWith(distanceUnit: v)),
                   ),
@@ -137,7 +138,7 @@ class SettingsScreen extends ConsumerWidget {
                         .withValues(alpha: 0.07),
                     activeColor: Theme.of(context).colorScheme.primary,
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14)),
+                        borderRadius: BorderRadius.circular(16)),
                     onChanged: (v) =>
                         controller.update((s) => s.copyWith(distanceUnit: v)),
                   ),
@@ -205,8 +206,8 @@ class SettingsScreen extends ConsumerWidget {
           const SizedBox(height: 24),
           OutlinedButton.icon(
             style: OutlinedButton.styleFrom(
-              foregroundColor: Colors.red,
-              side: const BorderSide(color: Colors.red),
+              foregroundColor: Theme.of(context).colorScheme.error,
+              side: BorderSide(color: Theme.of(context).colorScheme.error),
             ),
             onPressed: () => _confirmClearHistory(context, ref),
             icon: const Icon(Icons.delete_outline),
@@ -277,7 +278,8 @@ class SettingsScreen extends ConsumerWidget {
               onPressed: () => Navigator.pop(context, false),
               child: const Text('Cancel')),
           FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            style: FilledButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.error),
             onPressed: () => Navigator.pop(context, true),
             child: const Text('Clear'),
           ),
@@ -310,13 +312,7 @@ class _SettingsLinkTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final primary = Theme.of(context).colorScheme.primary;
     return ListTile(
-      leading: Container(
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-            color: primary.withValues(alpha: 0.12), shape: BoxShape.circle),
-        child: Icon(icon, size: 20, color: primary),
-      ),
+      leading: TintedIconCircle(icon: icon, color: primary),
       title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
       subtitle: subtitle != null ? Text(subtitle!) : null,
       trailing: const Icon(Icons.chevron_right),

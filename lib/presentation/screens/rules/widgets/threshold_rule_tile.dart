@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../../../../domain/entities/rule_config.dart';
 import '../../../widgets/section_card.dart';
+import '../../../widgets/tinted_icon_circle.dart';
 
 /// One rule row in the Rule Builder (spec section 32): an on/off switch plus
 /// a numeric value, validated against sensible bounds. Reused for every
@@ -149,14 +150,6 @@ class RuleIcon extends StatelessWidget {
     final color = active
         ? Theme.of(context).colorScheme.primary
         : Theme.of(context).colorScheme.onSurfaceVariant;
-    return Container(
-      width: 40,
-      height: 40,
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        shape: BoxShape.circle,
-      ),
-      child: Icon(icon, size: 20, color: color),
-    );
+    return TintedIconCircle(icon: icon, color: color);
   }
 }

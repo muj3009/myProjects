@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 /// Theming tuned for a driver glancing at the phone briefly (spec section 30/44):
 /// large touch targets, high contrast, minimal decoration, no gratuitous animation.
@@ -9,6 +10,12 @@ class AppTheme {
   static const Color accentGreen = Color(0xFF1B8A4A);
   static const Color accentRed = Color(0xFFC62828);
   static const Color accentAmber = Color(0xFFB8860B);
+
+  /// Fixed brand color for the app bar in both light and dark mode. Not
+  /// [ColorScheme.primary] because M3's dark-theme primary is deliberately
+  /// light (meant as foreground-on-dark-surface, not a block background) and
+  /// would fail contrast against the white title text used here.
+  static const Color brandHeader = Color(0xFF0B5FFF);
 
   static ThemeData light() => _base(Brightness.light);
   static ThemeData dark() => _base(Brightness.dark);
@@ -34,25 +41,34 @@ class AppTheme {
         },
       ),
       textTheme: const TextTheme(
-        headlineLarge: TextStyle(fontSize: 34, fontWeight: FontWeight.w800),
-        headlineMedium: TextStyle(fontSize: 26, fontWeight: FontWeight.w700),
+        headlineLarge: TextStyle(fontSize: 36, fontWeight: FontWeight.w800, letterSpacing: -0.5, height: 1.1),
+        headlineMedium: TextStyle(fontSize: 28, fontWeight: FontWeight.w800, letterSpacing: -0.3),
         titleLarge: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
         bodyLarge: TextStyle(fontSize: 17),
         bodyMedium: TextStyle(fontSize: 15),
         labelLarge: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
       ),
+      // Fully-rounded "pill" shape (not just a soft rectangle) for the
+      // primary CTA — a driver's two most important taps (Start/Stop
+      // automation) read as more premium and more obviously tappable as a
+      // stadium button than a 16px-radius rectangle, and the elevated
+      // shadow gives the button real lift off the page instead of sitting
+      // flush with it.
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           minimumSize: const Size.fromHeight(64),
-          textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, letterSpacing: 0.2),
+          shape: const StadiumBorder(),
+          elevation: 3,
+          shadowColor: colorScheme.primary.withValues(alpha: 0.35),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           minimumSize: const Size.fromHeight(56),
           textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: const StadiumBorder(),
+          side: BorderSide(color: colorScheme.outlineVariant, width: 1.5),
         ),
       ),
       // Elevation 0 on a card that's nearly the same tone as the scaffold
@@ -60,66 +76,75 @@ class AppTheme {
       // no visible edge on a real screen — a hairline border is what
       // actually separates "a card" from "a slightly different rectangle of
       // background". Kept subtle (low-alpha outlineVariant) so it reads as
-      // definition, not a hard box.
+      // definition, not a hard box. Radius widened from 20 to 24 for a
+      // softer, more premium-feeling card shape.
       cardTheme: CardThemeData(
         elevation: 0,
         color: isDark ? const Color(0xFF17181C) : Colors.white,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(24),
           side: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: isDark ? 0.4 : 0.7)),
         ),
         margin: EdgeInsets.zero,
       ),
+      // A bold, brand-colored header instead of a bar that blends into the
+      // scaffold is the single highest-impact change for making the app feel
+      // designed rather than default Material — every screen now opens with
+      // an unmistakable splash of color instead of grey-on-grey.
       appBarTheme: AppBarTheme(
-        backgroundColor: isDark ? const Color(0xFF0E0F12) : const Color(0xFFF6F7F9),
+        backgroundColor: brandHeader,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         centerTitle: false,
-        foregroundColor: colorScheme.onSurface,
-        titleTextStyle: TextStyle(
-          fontSize: 22,
+        foregroundColor: Colors.white,
+        iconTheme: const IconThemeData(color: Colors.white),
+        actionsIconTheme: const IconThemeData(color: Colors.white),
+        titleTextStyle: const TextStyle(
+          fontSize: 24,
           fontWeight: FontWeight.w800,
-          color: colorScheme.onSurface,
+          letterSpacing: -0.3,
+          color: Colors.white,
         ),
+        systemOverlayStyle: SystemUiOverlayStyle.light,
       ),
       listTileTheme: ListTileThemeData(
         iconColor: colorScheme.primary,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       ),
       dividerTheme: DividerThemeData(color: colorScheme.outlineVariant.withValues(alpha: 0.6), space: 1),
       chipTheme: ChipThemeData(
         backgroundColor: isDark ? const Color(0xFF1F2126) : const Color(0xFFEDEFF3),
-        selectedColor: colorScheme.primary.withValues(alpha: 0.16),
+        selectedColor: colorScheme.primary.withValues(alpha: 0.18),
         disabledColor: colorScheme.surfaceContainerHighest,
-        labelStyle: TextStyle(fontWeight: FontWeight.w600, color: colorScheme.onSurface),
-        secondaryLabelStyle: TextStyle(fontWeight: FontWeight.w700, color: colorScheme.primary),
-        side: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.7)),
+        labelStyle: TextStyle(fontWeight: FontWeight.w700, color: colorScheme.onSurface),
+        secondaryLabelStyle: TextStyle(fontWeight: FontWeight.w800, color: colorScheme.primary),
+        side: BorderSide.none,
         shape: const StadiumBorder(),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: isDark ? const Color(0xFF1B1D22) : const Color(0xFFF0F1F4),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(18),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(18),
           borderSide: BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(18),
           borderSide: BorderSide(color: colorScheme.primary, width: 2),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(18),
           borderSide: BorderSide(color: colorScheme.error, width: 1.5),
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(18),
           borderSide: BorderSide(color: colorScheme.error, width: 2),
         ),
       ),

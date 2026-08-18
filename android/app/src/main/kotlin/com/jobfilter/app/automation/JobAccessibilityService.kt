@@ -1136,14 +1136,16 @@ class JobAccessibilityService : AccessibilityService() {
         // fully-sampled motion path with no segment-boundary discontinuities
         // at all, closest to what an actual complete human swipe looks like
         // to Android's own dispatcher. 350ms is the value confirmed working
-        // live; tightened to 220ms per driver request for a snappier feel —
-        // still a single unbroken stroke, just less real time per attempt,
-        // so it's a genuine open question whether this undershoots again.
+        // live; tightened twice since per driver request for a snappier
+        // feel (220ms, now 160ms) — still a single unbroken stroke, just
+        // less real time per attempt each step. If jobs start going
+        // unswiped again, this value going too low is the first thing to
+        // check — revert toward 350ms before reaching for anything else.
         val path = Path().apply {
             moveTo(startX, centerY)
             lineTo(endX, centerY)
         }
-        val stroke = GestureDescription.StrokeDescription(path, 0, 220L)
+        val stroke = GestureDescription.StrokeDescription(path, 0, 160L)
         val gesture = GestureDescription.Builder().addStroke(stroke).build()
         val dispatched = dispatchGesture(
             gesture,

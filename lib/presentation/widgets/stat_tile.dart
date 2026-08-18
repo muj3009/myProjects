@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'tinted_icon_circle.dart';
+
 class StatTile extends StatelessWidget {
   const StatTile(
       {super.key,
@@ -22,18 +24,13 @@ class StatTile extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         if (icon != null) ...[
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-                color: tint.withValues(alpha: 0.14), shape: BoxShape.circle),
-            child: Icon(icon, size: 17, color: tint),
-          ),
-          const SizedBox(height: 8),
+          TintedIconCircle(icon: icon!, color: tint, diameter: 34, iconSize: 18),
+          const SizedBox(height: 10),
         ],
         Text(
           value,
-          style: theme.textTheme.headlineMedium?.copyWith(color: color),
+          style: theme.textTheme.headlineMedium
+              ?.copyWith(color: color, fontSize: 24),
         ),
         const SizedBox(height: 2),
         Text(

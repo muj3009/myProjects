@@ -140,10 +140,10 @@ class _PlatformBadge extends StatelessWidget {
     final isUber = platform == PlatformType.uber;
     final color = isUber ? Colors.black : const Color(0xFF34D186);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(6),
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(10),
       ),
       child: Text(
         platform.displayName.toUpperCase(),
