@@ -894,8 +894,27 @@ class JobAccessibilityService : AccessibilityService() {
             }
         }
         if (bounds == null) {
-            android.util.Log.d("JobFilterSwipe", "swipeJobCard($direction): no card bounds found in any monitored window")
-            callback(false)
+            // A real device showed this happen right after a swipe that
+            // actually worked: verifySwipeDismissed's first check ran too
+            // soon (before Bolt's dismiss animation/tree update finished),
+            // wrongly reported "still present", triggering a retry — and
+            // that retry then couldn't find the card at all, because it
+            // really was already gone. Treating "can't find it" as a
+            // synonym for "verified dismissed" on a retry (attemptsLeft < 3
+            // means at least one swipe was already dispatched this call)
+            // fixes that false failure directly, instead of falling through
+            // to tapCardThenButton and needlessly opening the card's detail
+            // view for a job that was already correctly declined. On the
+            // very first attempt (no swipe dispatched yet), not finding the
+            // card is a genuinely different, more ambiguous situation —
+            // still reported as failure there.
+            val alreadyDismissedByEarlierAttempt = attemptsLeft < 3
+            android.util.Log.d(
+                "JobFilterSwipe",
+                "swipeJobCard($direction): no card bounds found in any monitored window " +
+                    "(treating as ${if (alreadyDismissedByEarlierAttempt) "already dismissed" else "not found"})"
+            )
+            callback(alreadyDismissedByEarlierAttempt)
             return
         }
         android.util.Log.d(
@@ -1113,15 +1132,18 @@ class JobAccessibilityService : AccessibilityService() {
         // its distance even though the commanded path itself covers the
         // full width. Replacing all of that with the simplest possible
         // thing: a single, unbroken stroke covering the complete distance
-        // over a longer 350ms — enough real time for a full, smooth,
+        // over a longer duration — enough real time for a full, smooth,
         // fully-sampled motion path with no segment-boundary discontinuities
         // at all, closest to what an actual complete human swipe looks like
-        // to Android's own dispatcher.
+        // to Android's own dispatcher. 350ms is the value confirmed working
+        // live; tightened to 220ms per driver request for a snappier feel —
+        // still a single unbroken stroke, just less real time per attempt,
+        // so it's a genuine open question whether this undershoots again.
         val path = Path().apply {
             moveTo(startX, centerY)
             lineTo(endX, centerY)
         }
-        val stroke = GestureDescription.StrokeDescription(path, 0, 350L)
+        val stroke = GestureDescription.StrokeDescription(path, 0, 220L)
         val gesture = GestureDescription.Builder().addStroke(stroke).build()
         val dispatched = dispatchGesture(
             gesture,
