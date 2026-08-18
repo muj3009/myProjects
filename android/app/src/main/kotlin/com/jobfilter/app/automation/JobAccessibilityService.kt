@@ -61,6 +61,12 @@ class JobAccessibilityService : AccessibilityService() {
         /// so anchoring to the start of the string is what tells the two
         /// apart without needing to know either button's exact wording.
         private val COUNTER_OFFER_PRICE_REGEX = Regex("^£\\d+\\.\\d{2}$")
+
+        /// Matches each stacked job card's fare label (e.g. "£6.48 (NET, tax
+        /// included)") — used only for [countFareCardNodes]'s diagnostic
+        /// count of how many job offers are simultaneously stacked on
+        /// screen, not for parsing (BoltJobParser owns real fare parsing).
+        private val FARE_CARD_LABEL_REGEX = Regex("^£\\d+\\.\\d{2} \\(NET")
     }
 
     /** Package name of the app that most recently produced an accessibility event. */
@@ -830,7 +836,46 @@ class JobAccessibilityService : AccessibilityService() {
      * blind at whatever happens to be on screen.
      */
     fun swipeJobCard(direction: SwipeDirection, anchorKeywords: List<String>, callback: (Boolean) -> Unit) {
+        // A live session on a real device proved the swipe is not a hard
+        // all-or-nothing block: with an identical gesture, some attempts
+        // against a fresh card genuinely succeed (verifySwipeDismissed
+        // independently confirmed the card actually gone) while others on
+        // the very same device, same code, same job shape, don't — the
+        // driver separately confirmed "sometimes the swipe works randomly".
+        // That pattern (not 0% and not 100%) is the signature of a marginal
+        // case sitting right at Bolt's own swipe-to-dismiss recognizer
+        // threshold, where small, unavoidable scheduling/animation timing
+        // jitter between attempts tips an individual gesture's effective
+        // velocity over or under it — not a deliberate block, which would
+        // instead show 0% no matter how the gesture is shaped. The fix for
+        // a marginal-probability event is to retry it, not to keep
+        // reshaping the gesture: 3 independent attempts compound a
+        // per-attempt success rate that's merely "sometimes" into "almost
+        // always", each one re-finding the card fresh (not reusing stale
+        // bounds) in case the list shifted between attempts.
+        attemptSwipeJobCard(direction, anchorKeywords, attemptsLeft = 3, callback = callback)
+    }
+
+    private fun attemptSwipeJobCard(
+        direction: SwipeDirection,
+        anchorKeywords: List<String>,
+        attemptsLeft: Int,
+        callback: (Boolean) -> Unit
+    ) {
         var bounds: Rect? = null
+        // Diagnostic for the single-job-vs-stacked-list question: driver
+        // reported swipe reliably works when multiple jobs are stacked but
+        // not for a single job on its own, which would point at Bolt using
+        // a genuinely different screen/widget for the single-offer case
+        // rather than a plain RecyclerView list item. Counting fare nodes
+        // (each stacked card has its own "£X.XX (NET, tax included)" node)
+        // in the SAME window the anchor/bounds came from — logged as a
+        // short, single-line count (not a full tree dump) specifically so
+        // it survives Monitor's line-length truncation and is directly
+        // correlatable with the swipe outcome that follows it, without
+        // needing another rebuild to add this if today's session hits the
+        // single-job case again.
+        var stackedJobCount = -1
         for (root in monitoredWindowRoots()) {
             try {
                 val anchor = findNodeByKeywords(root, anchorKeywords.map { it.lowercase() })
@@ -839,7 +884,10 @@ class JobAccessibilityService : AccessibilityService() {
                     "swipeJobCard($direction) pkg=${root.packageName} anchorKeywords=$anchorKeywords found=${anchor != null}"
                 )
                 bounds = anchor?.let { findCardBounds(it, root) }
-                if (bounds != null) break
+                if (bounds != null) {
+                    stackedJobCount = countFareCardNodes(root)
+                    break
+                }
             } finally {
                 @Suppress("DEPRECATION")
                 root.recycle()
@@ -850,7 +898,10 @@ class JobAccessibilityService : AccessibilityService() {
             callback(false)
             return
         }
-        android.util.Log.d("JobFilterSwipe", "swipeJobCard($direction) cardBounds=$bounds")
+        android.util.Log.d(
+            "JobFilterSwipe",
+            "swipeJobCard($direction) cardBounds=$bounds stackedJobCount=$stackedJobCount (attemptsLeft=$attemptsLeft)"
+        )
         // A "nudge the list up first, to reveal a bottom-clipped card
         // before swiping" step was tried here and reverted — a real device
         // showed it consistently threw off the swipe's aim (Bolt's list was
@@ -864,10 +915,29 @@ class JobAccessibilityService : AccessibilityService() {
         dispatchSwipe(bounds, direction) { success ->
             android.util.Log.d("JobFilterSwipe", "swipeJobCard($direction) gesture success=$success")
             if (!success) {
-                callback(false)
+                if (attemptsLeft > 1) {
+                    attemptSwipeJobCard(direction, anchorKeywords, attemptsLeft - 1, callback)
+                } else {
+                    callback(false)
+                }
                 return@dispatchSwipe
             }
-            verifySwipeDismissed(anchorKeywords, attemptsLeft = 5, callback = callback)
+            // Widened from 5 to 8 (480ms total, up from 300ms) — a
+            // genuinely-registered swipe's dismiss animation may need more
+            // than 300ms to finish removing the card from the tree, and a
+            // false "failed" verdict here costs a real driver a job that
+            // actually was declined correctly.
+            verifySwipeDismissed(anchorKeywords, attemptsLeft = 8) { dismissed ->
+                if (dismissed || attemptsLeft <= 1) {
+                    callback(dismissed)
+                } else {
+                    android.util.Log.d(
+                        "JobFilterSwipe",
+                        "swipeJobCard($direction): attempt failed, retrying (attemptsLeft=${attemptsLeft - 1})"
+                    )
+                    attemptSwipeJobCard(direction, anchorKeywords, attemptsLeft - 1, callback)
+                }
+            }
         }
     }
 
@@ -953,6 +1023,30 @@ class JobAccessibilityService : AccessibilityService() {
         return null
     }
 
+    /**
+     * Diagnostic-only: counts fare-label nodes ([FARE_CARD_LABEL_REGEX])
+     * anywhere under [root] — a rough proxy for "how many job offers are
+     * stacked in this list right now" (0 or 1 = a single offer, 2+ =
+     * genuinely stacked), logged alongside every swipe attempt to test
+     * whether swipe reliability actually correlates with list size, per a
+     * real driver's live observation that it reliably works for a stacked
+     * list but not for a single offer on its own.
+     */
+    private fun countFareCardNodes(node: AccessibilityNodeInfo, depth: Int = 0): Int {
+        if (depth > MAX_TREE_DEPTH) return 0
+        var count = if (FARE_CARD_LABEL_REGEX.containsMatchIn(node.text?.toString() ?: "")) 1 else 0
+        for (i in 0 until node.childCount) {
+            val child = node.getChild(i) ?: continue
+            try {
+                count += countFareCardNodes(child, depth + 1)
+            } finally {
+                @Suppress("DEPRECATION")
+                child.recycle()
+            }
+        }
+        return count
+    }
+
     private fun dispatchSwipe(bounds: Rect, direction: SwipeDirection, callback: (Boolean) -> Unit) {
         val centerY = bounds.centerY().toFloat()
         // A real device showed this landing card-bounds-to-card-bounds only
@@ -969,55 +1063,66 @@ class JobAccessibilityService : AccessibilityService() {
         // same distance now moves at a genuinely fast, decisive flick speed
         // instead of a slow deliberate drag.
         val screenWidth = resources.displayMetrics.widthPixels.toFloat()
-        val edgeMargin = 10f
+        // REVERTED: sending endX past the actual display bounds (negative,
+        // or beyond screenWidth) was tried here to address a driver's live
+        // report that the card only visibly travels half way — but a real
+        // device then showed dispatchGesture's callback never firing at all
+        // for those out-of-bounds paths (no onCompleted, no onCancelled —
+        // not even the `!dispatched` synchronous-false fallback), i.e. the
+        // touch was never delivered at all, which is strictly worse than
+        // the "half way" symptom this was meant to fix. Coordinates must
+        // stay within the actual screen surface for dispatchGesture to
+        // deliver anything. A 1px margin (down from 10f) still lands
+        // essentially at the true edge without risking going past it.
+        val edgeMargin = 1f
+        // Widened from 20f — Material-style cards commonly carry a few
+        // pixels of non-interactive elevation/shadow padding around their
+        // real touchable content, and starting only 20px in from the
+        // card's detected edge risks landing the touch-down in that
+        // margin rather than on the actual content view Bolt's swipe
+        // recognizer is listening on. 80px moves the start point solidly
+        // inside the card. Testing this against the theory that
+        // inconsistent hit-testing (not gesture shape/timing) explains
+        // both the intermittent full successes and the partial visual
+        // travel seen on failures.
+        val contentInset = 80f
         val startX: Float
         val endX: Float
         if (direction == SwipeDirection.LEFT) {
-            startX = bounds.right - 20f
+            startX = bounds.right - contentInset
             endX = edgeMargin
         } else {
-            startX = bounds.left + 20f
+            startX = bounds.left + contentInset
             endX = screenWidth - edgeMargin
         }
         android.util.Log.d(
             "JobFilterSwipe",
             "dispatchSwipe($direction) from=($startX,$centerY) to=($endX,$centerY)"
         )
-        // A real device confirmed a genuine finger swipe still dismisses the
-        // card normally, while this exact synthetic gesture reports
-        // dispatchGesture success yet Bolt never registers it — three real
-        // jobs in a row, all with correct bounds/coordinates. The single
-        // straight-line stroke above moves at constant velocity throughout
-        // (Android interpolates the path uniformly over the fixed
-        // duration); a real flick instead accelerates toward release, so a
-        // swipe-to-dismiss recognizer that specifically checks release
-        // velocity (common for RecyclerView/ItemTouchHelper-style swipe
-        // gestures) could read this stroke's velocity as too low even
-        // though its average speed and total distance both comfortably
-        // exceed any reasonable threshold. Split into two chained strokes
-        // instead: the first covers 55% of the distance over 60% of the
-        // duration (a normal start), the second covers the remaining 45%
-        // over just 25% of the duration (a sharp acceleration into
-        // release) — same total distance and total time, but now with a
-        // release velocity roughly double the first segment's, closer to
-        // how a real flick actually behaves.
-        val midX = startX + (endX - startX) * 0.55f
-        val firstDurationMs = 90L
-        val secondDurationMs = 40L
-        val firstPath = Path().apply {
+        // REVERTED (2026-08-18, same night) — abandoning multi-stage
+        // acceleration entirely. Every chopped-into-short-segments version
+        // tried tonight (2-stage, 4-stage gentle, 4-stage front-loaded) left
+        // the card only partially, visibly displaced — a driver watching a
+        // screen recording confirmed the drag genuinely engages (the card
+        // shows Bolt's own salmon-pink swipe-in-progress background) but
+        // never completes to a full swipe. Splitting the path into several
+        // very short strokes (as short as 20ms) may simply not give
+        // Android's gesture dispatcher enough real time between segments to
+        // generate and deliver a smooth, fully-sampled motion event stream
+        // for each one — under-sampling a short segment can under-deliver
+        // its distance even though the commanded path itself covers the
+        // full width. Replacing all of that with the simplest possible
+        // thing: a single, unbroken stroke covering the complete distance
+        // over a longer 350ms — enough real time for a full, smooth,
+        // fully-sampled motion path with no segment-boundary discontinuities
+        // at all, closest to what an actual complete human swipe looks like
+        // to Android's own dispatcher.
+        val path = Path().apply {
             moveTo(startX, centerY)
-            lineTo(midX, centerY)
-        }
-        val secondPath = Path().apply {
-            moveTo(midX, centerY)
             lineTo(endX, centerY)
         }
-        val firstStroke = GestureDescription.StrokeDescription(firstPath, 0, firstDurationMs, true)
-        val secondStroke = firstStroke.continueStroke(secondPath, firstDurationMs, secondDurationMs, false)
-        val gesture = GestureDescription.Builder()
-            .addStroke(firstStroke)
-            .addStroke(secondStroke)
-            .build()
+        val stroke = GestureDescription.StrokeDescription(path, 0, 350L)
+        val gesture = GestureDescription.Builder().addStroke(stroke).build()
         val dispatched = dispatchGesture(
             gesture,
             object : GestureResultCallback() {

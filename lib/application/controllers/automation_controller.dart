@@ -468,7 +468,27 @@ class AutomationController extends StateNotifier<AutomationState> {
     String? fingerprint;
     try {
       // Safety check 2: a job is currently visible.
-      if (!parsed.jobCardDetected) return false;
+      if (!parsed.jobCardDetected) {
+        // Diagnostic for a real-device question still open tonight: does
+        // BoltJobParser's "request expired" exclusion (added deliberately —
+        // see its doc comment — to stop retrying a card that's genuinely
+        // unactionable) ever fire on a card that's actually still live? A
+        // single, non-stacked offer has no "Instant" line to split on
+        // (BoltJobParser.parse's fallback treats the whole screen as one
+        // segment), so if Bolt's layout reserves a "Request expired" label
+        // area even on a fresh single card, this exclusion could suppress a
+        // genuinely actionable job with zero visible signal — previously
+        // this whole branch logged nothing at all, indistinguishable from
+        // "nothing was on screen". Logging the raw segment here (only on
+        // the miss, not every successful detection, to avoid duplicating
+        // the existing log below) is what would make that visible instead
+        // of guessed.
+        AppLogger.instance.debug(
+          _tag,
+          'Job card NOT detected (excluded or incomplete) for $platform — raw text:\n${parsed.rawText}',
+        );
+        return false;
+      }
 
       // Logged (not just stored in debug.lastDetectedText) because the
       // dashboard's own frequent update events would otherwise overwrite
@@ -626,25 +646,40 @@ class AutomationController extends StateNotifier<AutomationState> {
         actionSummary = 'No action — insufficient information';
       }
 
+      // Spec/driver-facing correctness: the decision recorded and shown to
+      // the driver must reflect what actually happened on screen, not just
+      // what the rules engine decided. A real device showed the dashboard
+      // claiming "REJECTED" for a job whose swipe/tap action had genuinely
+      // failed (the card never moved) — `job.decision` above only ever
+      // holds the *intended* verdict (`outcome.decision`), so persisting it
+      // unconditionally silently overclaimed success. shouldRecordFingerprint
+      // is already exactly "the attempted action truly succeeded (or none
+      // was needed)" — reused here rather than introducing a second,
+      // possibly-diverging flag.
+      final actionFailedOrSkipped = outcome.decision.isFinal && !shouldRecordFingerprint;
+      final recordedJob = actionFailedOrSkipped
+          ? job.copyWith(decision: JobDecision.error, decisionReason: actionSummary)
+          : job;
+
       if (shouldRecordFingerprint) {
         _fingerprints.record(fingerprint);
       }
 
-      await _jobRepository.save(job);
+      await _jobRepository.save(recordedJob);
 
       state = state.copyWith(
         jobsProcessed: state.jobsProcessed + 1,
-        accepted: outcome.decision == JobDecision.accepted ? state.accepted + 1 : state.accepted,
-        rejected: outcome.decision == JobDecision.rejected ? state.rejected + 1 : state.rejected,
-        lastJob: job,
+        accepted: recordedJob.decision == JobDecision.accepted ? state.accepted + 1 : state.accepted,
+        rejected: recordedJob.decision == JobDecision.rejected ? state.rejected + 1 : state.rejected,
+        lastJob: recordedJob,
         lastEvaluations: outcome.evaluations,
         debug: state.debug.copyWith(lastAction: actionSummary),
       );
 
       AppLogger.instance.info(
         _tag,
-        'Platform: ${platform.displayName} | Fare: ${job.fare} | '
-        '£/mile: ${job.poundsPerMile} | Decision: ${job.decision.label}',
+        'Platform: ${platform.displayName} | Fare: ${recordedJob.fare} | '
+        '£/mile: ${recordedJob.poundsPerMile} | Decision: ${recordedJob.decision.label}',
       );
       return acceptedSuccessfully;
     } catch (e, stackTrace) {

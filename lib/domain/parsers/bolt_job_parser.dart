@@ -62,23 +62,26 @@ class BoltJobParser implements JobParser {
   // the whole time it lingers.
   static const _expiredCardExclusionPhrases = ['request expired'];
 
-  // A real device showed the OLD "£13.12 Today" dashboard phantom-job bug
-  // (see the `distances.isNotEmpty` comment below) recur in a worse form: a
-  // driver confirmed the day's running earnings total ("£31.32 Today", shown
-  // on the idle "Waiting for offers" screen while genuinely no job was on
-  // screen) got detected AND rejected as if it were a live job, paired with
-  // stale distance/rate figures apparently still sitting in the accessibility
-  // tree from a real, no-longer-visible past job. `distances.isNotEmpty`
-  // alone can't rule this out when a stale distance is present, so this
-  // anchors on the idle screen's own unambiguous chrome instead — 'go
-  // offline' is the toggle button shown ONLY while online and idle (never on
-  // a live offer card), and the other two are this exact idle screen's own
-  // copy. None of these would ever appear on a genuine offer.
-  static const _idleDashboardExclusionPhrases = [
-    'waiting for offers',
-    'see offers here',
-    'go offline',
-  ];
+  // REMOVED (2026-08-18): this used to also exclude on 'go offline' / 'see
+  // offers here' / 'waiting for offers', on the assumption those only ever
+  // appear on the truly-idle dashboard, never alongside a live offer card.
+  // A live session proved that assumption wrong — Bolt's "Go offline"
+  // toggle and "Waiting for more offers" copy are persistent bottom-of-
+  // screen chrome, present regardless of whether a card is showing. Because
+  // `_cardStart` splits each card's segment from its own "Instant" line up
+  // to the *next* one (or end of string for the last/only card — see
+  // [parse]), a single standalone offer or the last card in a stacked list
+  // has its segment run all the way through that trailing chrome, so this
+  // exclusion silently discarded a genuine, fully-actionable job every
+  // time (confirmed via a real device: a job with a real fare, address, and
+  // distances — everything [jobCardDetected] otherwise requires — got
+  // marked not-detected purely because "Go offline" happened to be swept
+  // into its segment). This is exactly what made single/last-in-stack jobs
+  // look like a swipe-mechanism failure when the swipe was never even
+  // attempted. The original dashboard-phantom-job bug this guarded against
+  // is still covered by `distances.isNotEmpty` above (see that comment) —
+  // the idle dashboard has no distance figure to spuriously match, so no
+  // replacement exclusion is needed here.
 
   // Real device screens showed multiple simultaneous offers ("Available
   // trips" listing more than one card at once). Each card starts with this
@@ -123,7 +126,6 @@ class BoltJobParser implements JobParser {
         distances.isNotEmpty &&
         _jobCardKeywords.any(lower.contains) &&
         !_historyScreenExclusionPhrases.any(lower.contains) &&
-        !_idleDashboardExclusionPhrases.any(lower.contains) &&
         !_expiredCardExclusionPhrases.any(lower.contains);
     // Not `extractDurationMinutes` (single first-match) — Bolt's card shows
     // pickup duration before trip duration the same way Uber's does, so

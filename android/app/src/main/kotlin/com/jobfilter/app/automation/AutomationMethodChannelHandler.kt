@@ -211,11 +211,21 @@ class AutomationMethodChannelHandler(
 
     /**
      * Tries Bolt's swipe-card gesture first (its collapsed job card has no
-     * tappable reject button at all), falling back to a keyword-based
-     * button tap for layouts that do have one (e.g. the expanded detail
-     * view's "Decline"). Either path can legitimately find nothing — e.g.
-     * no job currently visible, or the driver switched away to an unrelated
-     * app — in which case this reports false rather than guessing.
+     * tappable reject button at all), then a keyword-based button tap for
+     * layouts that do have one directly visible (e.g. the already-one-job-
+     * accepted expanded detail view's "Decline"). Both of those act on the
+     * collapsed list view without opening anything — a real device showed
+     * `dispatchGesture` reporting the swipe as completed while Bolt never
+     * actually registered it as a decline (see
+     * [JobAccessibilityService.dispatchSwipe]'s doc comment), and that same
+     * collapsed view has no reject button for the keyword search to find
+     * either, so both can legitimately miss on a card that's still fully
+     * visible and actionable. Rather than give up there, this falls back to
+     * the same open-the-card mechanism [acceptJob] already relies on
+     * ([JobAccessibilityService.tapCardThenButton]) and looks for a Decline
+     * button inside the resulting detail view — mirroring Accept's own
+     * "open card, then tap the real button inside" flow instead of assuming
+     * reject can only ever be a gesture.
      *
      * [cardAnchor] (e.g. a pickup address, passed from the Dart side's
      * parsed job data) targets one specific card when more than one offer
@@ -242,14 +252,23 @@ class AutomationMethodChannelHandler(
         service.swipeJobCard(JobAccessibilityService.SwipeDirection.LEFT, anchorKeywords) { swiped ->
             if (swiped) {
                 result.success(true)
-            } else {
-                val tapped = service.findAndClickButtonByKeywords(REJECT_KEYWORDS)
+                return@swipeJobCard
+            }
+            if (service.findAndClickButtonByKeywords(REJECT_KEYWORDS)) {
+                result.success(true)
+                return@swipeJobCard
+            }
+            // Neither the swipe nor a directly-visible Decline button
+            // worked — open the card (same mechanism as acceptJob) and look
+            // for Decline inside the detail view it reveals.
+            val anchor = if (cardAnchor.isNullOrBlank()) CARD_ANCHOR_KEYWORDS.first() else cardAnchor
+            service.tapCardThenButton(anchor, REJECT_KEYWORDS) { tapped ->
                 // See [JobAccessibilityService.invalidateLastEmittedText] —
                 // a real device showed dispatchGesture report success while
-                // Bolt never actually registered the swipe, and this
-                // fallback tap then also missing (normal — this card layout
-                // has no reject button). Without this, that still-visible,
-                // still-actionable card would never be looked at again.
+                // Bolt never actually registered the swipe, and both
+                // fallbacks then also missing. Without this, that
+                // still-visible, still-actionable card would never be
+                // looked at again.
                 if (!tapped) service.invalidateLastEmittedText()
                 result.success(tapped)
             }
