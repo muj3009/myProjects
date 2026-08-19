@@ -189,9 +189,23 @@ class AppTheme {
           ),
         ),
       ),
+      // A single cohesive hue when on (green thumb + green-tinted track,
+      // matching "on = active/go" everywhere else in the app) rather than
+      // the M3 default of a green thumb sitting on the *accent blue* track —
+      // two different accent colors on one control read as a mismatch, not
+      // a design choice.
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith(
           (states) => states.contains(WidgetState.selected) ? accentGreen : null,
+        ),
+        trackColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? accentGreen.withValues(alpha: 0.5)
+              : null,
+        ),
+        trackOutlineColor: WidgetStateProperty.resolveWith(
+          (states) =>
+              states.contains(WidgetState.selected) ? Colors.transparent : null,
         ),
       ),
     );

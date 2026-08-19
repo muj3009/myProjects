@@ -2,16 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../application/state/settings_controller.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../domain/entities/rule_config.dart';
 import '../../../domain/enums/distance_unit.dart';
 import '../../../domain/enums/platform_type.dart';
 import '../../widgets/section_card.dart';
+import '../../widgets/section_header.dart';
 import 'widgets/postcode_blocklist_tile.dart';
 import 'widgets/threshold_rule_tile.dart';
 
 /// Rule Builder (spec section 6/11/32) — every rule is independently
 /// enable-able, and the list is driven by data rather than one hard-coded
 /// screen per rule, so a new rule only needs a new [ThresholdRuleTile] entry.
+///
+/// Structured in three tiers rather than one flat stack of equal-weight
+/// cards: a live summary of what's actually active (so a driver can verify
+/// their setup without reading every row), the one rule that matters most
+/// (minimum £/mile) featured on its own, and everything else grouped into a
+/// single divided list — a disabled rule now costs one line, not a full card.
 class RulesScreen extends ConsumerWidget {
   const RulesScreen({super.key});
 
@@ -26,88 +34,95 @@ class RulesScreen extends ConsumerWidget {
     }
 
     final distanceUnitLabel =
-        settings.distanceUnit == DistanceUnit.miles ? 'miles' : 'km';
+        settings.distanceUnit == DistanceUnit.miles ? 'mi' : 'km';
 
     return Scaffold(
       appBar: AppBar(title: const Text('Rules')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          ThresholdRuleTile(
-            title: 'Minimum £/mile',
-            subtitle: 'The core rule — reject anything below this rate.',
-            unitPrefix: '£',
-            unitSuffix: '/mile',
-            icon: Icons.attach_money,
-            rule: rules.minimumPoundsPerMile,
-            onChanged: (r) =>
-                updateRules((c) => c.copyWith(minimumPoundsPerMile: r)),
+          _RulesSummaryCard(rules: rules, distanceUnitLabel: distanceUnitLabel),
+          const SizedBox(height: 24),
+          const SectionHeader('CORE RULE'),
+          _FeaturedRuleCard(
+            child: ThresholdRuleTile(
+              title: 'Minimum £/mile',
+              subtitle: 'The core rule — reject anything below this rate.',
+              unitPrefix: '£',
+              unitSuffix: '/mile',
+              icon: Icons.attach_money,
+              rule: rules.minimumPoundsPerMile,
+              emphasized: true,
+              onChanged: (r) =>
+                  updateRules((c) => c.copyWith(minimumPoundsPerMile: r)),
+            ),
           ),
-          const SizedBox(height: 12),
-          ThresholdRuleTile(
-            title: 'Maximum pickup distance',
-            subtitle:
-                'Reject jobs that need a long drive just to reach the passenger.',
-            unitSuffix: ' $distanceUnitLabel',
-            icon: Icons.social_distance,
-            rule: rules.maximumPickupDistanceMiles,
-            onChanged: (r) =>
-                updateRules((c) => c.copyWith(maximumPickupDistanceMiles: r)),
+          const SizedBox(height: 24),
+          const SectionHeader('ADDITIONAL FILTERS'),
+          SectionCard(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Column(
+              children: [
+                ThresholdRuleTile(
+                  title: 'Maximum pickup distance',
+                  subtitle: 'Long drives just to reach the passenger.',
+                  unitSuffix: ' $distanceUnitLabel',
+                  icon: Icons.social_distance,
+                  rule: rules.maximumPickupDistanceMiles,
+                  onChanged: (r) => updateRules(
+                      (c) => c.copyWith(maximumPickupDistanceMiles: r)),
+                ),
+                const _RowDivider(),
+                ThresholdRuleTile(
+                  title: 'Minimum fare',
+                  subtitle: 'A flat fare floor, regardless of £/mile.',
+                  unitPrefix: '£',
+                  icon: Icons.payments_outlined,
+                  rule: rules.minimumFare,
+                  onChanged: (r) => updateRules((c) => c.copyWith(minimumFare: r)),
+                ),
+                const _RowDivider(),
+                ThresholdRuleTile(
+                  title: 'Maximum trip distance',
+                  subtitle: 'Reject unusually long trips.',
+                  unitSuffix: ' $distanceUnitLabel',
+                  icon: Icons.route_outlined,
+                  rule: rules.maximumTripDistanceMiles,
+                  onChanged: (r) =>
+                      updateRules((c) => c.copyWith(maximumTripDistanceMiles: r)),
+                ),
+                const _RowDivider(),
+                ThresholdRuleTile(
+                  title: 'Minimum estimated hourly rate',
+                  subtitle: 'Only when a duration estimate is available.',
+                  unitPrefix: '£',
+                  unitSuffix: '/hour',
+                  icon: Icons.schedule_outlined,
+                  rule: rules.minimumHourlyRate,
+                  onChanged: (r) =>
+                      updateRules((c) => c.copyWith(minimumHourlyRate: r)),
+                ),
+                const _RowDivider(),
+                PostcodeBlocklistTile(
+                  config: rules.postcodeBlocklist,
+                  onChanged: (c) =>
+                      updateRules((r) => r.copyWith(postcodeBlocklist: c)),
+                ),
+                const _RowDivider(),
+                ThresholdRuleTile(
+                  title: 'Counter-offer near-miss jobs (Bolt)',
+                  subtitle: '% of your minimum £/mile that still gets a counter.',
+                  unitSuffix: '%',
+                  icon: Icons.swap_horiz,
+                  rule: rules.counterOfferBandPercent,
+                  onChanged: (r) =>
+                      updateRules((c) => c.copyWith(counterOfferBandPercent: r)),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 12),
-          ThresholdRuleTile(
-            title: 'Minimum fare',
-            subtitle: 'Reject jobs below a flat fare, regardless of £/mile.',
-            unitPrefix: '£',
-            icon: Icons.payments_outlined,
-            rule: rules.minimumFare,
-            onChanged: (r) => updateRules((c) => c.copyWith(minimumFare: r)),
-          ),
-          const SizedBox(height: 12),
-          ThresholdRuleTile(
-            title: 'Maximum trip distance',
-            subtitle: 'Reject unusually long trips.',
-            unitSuffix: ' $distanceUnitLabel',
-            icon: Icons.route_outlined,
-            rule: rules.maximumTripDistanceMiles,
-            onChanged: (r) =>
-                updateRules((c) => c.copyWith(maximumTripDistanceMiles: r)),
-          ),
-          const SizedBox(height: 12),
-          ThresholdRuleTile(
-            title: 'Minimum estimated hourly rate',
-            subtitle:
-                'Only applied when a reliable duration estimate is available.',
-            unitPrefix: '£',
-            unitSuffix: '/hour',
-            icon: Icons.schedule_outlined,
-            rule: rules.minimumHourlyRate,
-            onChanged: (r) =>
-                updateRules((c) => c.copyWith(minimumHourlyRate: r)),
-          ),
-          const SizedBox(height: 12),
-          PostcodeBlocklistTile(
-            config: rules.postcodeBlocklist,
-            onChanged: (c) =>
-                updateRules((r) => r.copyWith(postcodeBlocklist: c)),
-          ),
-          const SizedBox(height: 12),
-          ThresholdRuleTile(
-            title: 'Counter-offer near-miss jobs (Bolt only)',
-            subtitle:
-                'A Bolt job at this % or more of your minimum £/mile gets a '
-                'counter-offer (via "Change price", highest suggested amount) '
-                'instead of a straight reject.',
-            unitSuffix: '%',
-            icon: Icons.swap_horiz,
-            rule: rules.counterOfferBandPercent,
-            onChanged: (r) =>
-                updateRules((c) => c.copyWith(counterOfferBandPercent: r)),
-          ),
-          const SizedBox(height: 28),
-          Text('£/mile calculation',
-              style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 8),
+          const SizedBox(height: 24),
+          const SectionHeader('£/MILE CALCULATION'),
           SectionCard(
             padding: const EdgeInsets.symmetric(vertical: 4),
             child: Column(
@@ -152,17 +167,147 @@ class RulesScreen extends ConsumerWidget {
               ],
             ),
           ),
-          const SizedBox(height: 28),
-          Text('Platform-specific overrides',
-              style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 8),
-          Text(
-            'Set a different minimum £/mile per platform. Leave off to use the rules above.',
-            style: Theme.of(context).textTheme.bodyMedium,
+          const SizedBox(height: 24),
+          const SectionHeader('PLATFORM OVERRIDES'),
+          SectionCard(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Column(
+              children: [
+                for (final platform in [PlatformType.uber, PlatformType.bolt]) ...[
+                  if (platform == PlatformType.bolt) const _RowDivider(),
+                  _PlatformOverrideTile(platform: platform),
+                ],
+              ],
+            ),
           ),
-          const SizedBox(height: 8),
-          for (final platform in [PlatformType.uber, PlatformType.bolt])
-            _PlatformOverrideTile(platform: platform),
+        ],
+      ),
+    );
+  }
+}
+
+/// Divider aligned to sit under each row's title (past the 38px icon + 12px
+/// gap + 16px row padding), not flush against the card edge — matches the
+/// grouped-list pattern already used on the Settings screen.
+class _RowDivider extends StatelessWidget {
+  const _RowDivider();
+
+  @override
+  Widget build(BuildContext context) => Divider(
+        height: 1,
+        indent: 66,
+        endIndent: 8,
+        color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5),
+      );
+}
+
+/// A soft primary-tinted wash around the one rule that matters most — the
+/// same "featured card" language the Dashboard's automation status card
+/// uses — so it visually anchors the page instead of reading as one row
+/// among seven.
+class _FeaturedRuleCard extends StatelessWidget {
+  const _FeaturedRuleCard({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [primary.withValues(alpha: 0.14), primary.withValues(alpha: 0.03)],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: primary.withValues(alpha: 0.25)),
+      ),
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: child,
+    );
+  }
+}
+
+/// "Did I actually set this up right?" at a glance — the single highest-value
+/// addition to this screen: previously verifying the driver's own rule setup
+/// meant scrolling and reading every card. Empty when no filters are active
+/// so the fallback behavior (every job passes through) is stated plainly
+/// rather than just... absent.
+class _RulesSummaryCard extends StatelessWidget {
+  const _RulesSummaryCard({required this.rules, required this.distanceUnitLabel});
+
+  final RuleConfig rules;
+  final String distanceUnitLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final active = <String>[
+      if (rules.minimumPoundsPerMile.enabled)
+        '£${rules.minimumPoundsPerMile.value.toStringAsFixed(2)}/mile min',
+      if (rules.maximumPickupDistanceMiles.enabled)
+        'Max ${rules.maximumPickupDistanceMiles.value.toStringAsFixed(1)} $distanceUnitLabel pickup',
+      if (rules.minimumFare.enabled)
+        '£${rules.minimumFare.value.toStringAsFixed(2)} min fare',
+      if (rules.maximumTripDistanceMiles.enabled)
+        'Max ${rules.maximumTripDistanceMiles.value.toStringAsFixed(1)} $distanceUnitLabel trip',
+      if (rules.minimumHourlyRate.enabled)
+        '£${rules.minimumHourlyRate.value.toStringAsFixed(2)}/hr min',
+      if (rules.postcodeBlocklist.enabled && rules.postcodeBlocklist.blockedPrefixes.isNotEmpty)
+        '${rules.postcodeBlocklist.blockedPrefixes.length} area'
+            '${rules.postcodeBlocklist.blockedPrefixes.length == 1 ? '' : 's'} blocked',
+      if (rules.counterOfferBandPercent.enabled)
+        'Counter-offer at ${rules.counterOfferBandPercent.value.toStringAsFixed(0)}%',
+    ];
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.ink,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      padding: const EdgeInsets.all(18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.fact_check_outlined, color: Colors.white, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                active.isEmpty ? 'No filters active' : '${active.length} rule${active.length == 1 ? '' : 's'} active',
+                style: theme.textTheme.titleMedium
+                    ?.copyWith(fontWeight: FontWeight.w800, color: Colors.white),
+              ),
+            ],
+          ),
+          if (active.isEmpty) ...[
+            const SizedBox(height: 6),
+            Text(
+              'Every job passes straight through unless you turn a rule on below.',
+              style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white70),
+            ),
+          ] else ...[
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final label in active)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      label,
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13),
+                    ),
+                  ),
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -180,41 +325,38 @@ class _PlatformOverrideTile extends ConsumerWidget {
     final controller = ref.read(settingsControllerProvider.notifier);
     final override = settings.platformOverrides[platform];
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: ThresholdRuleTile(
-        title: platform.displayName,
-        subtitle: 'Overrides minimum £/mile for ${platform.displayName} only.',
-        unitPrefix: '£',
-        unitSuffix: '/mile',
-        icon: platform == PlatformType.uber
-            ? Icons.directions_car_filled_outlined
-            : Icons.electric_car_outlined,
-        rule: override?.minimumPoundsPerMile ??
-            const ThresholdRule(enabled: false, value: 2.00),
-        onChanged: (r) {
-          final overrides =
-              Map<PlatformType, RuleConfig>.from(settings.platformOverrides);
-          // Turning the switch off must mean "no override — use the rules
-          // above" (this section's own subtitle promises exactly that), not
-          // "override present but disabled". Those are different in
-          // driver_settings.dart's rulesFor(): an entry in this map replaces
-          // the *entire* rule set for that platform, not just this one
-          // field, so leaving a disabled override behind silently skipped
-          // Uber's minimum £/mile check on a real device — jobs kept being
-          // accepted below the driver's configured minimum with no warning
-          // anywhere, since the Dashboard reads the global rule, not the
-          // per-platform effective one. Removing the entry outright is what
-          // actually restores "use the rules above".
-          if (!r.enabled) {
-            overrides.remove(platform);
-          } else {
-            final base = overrides[platform] ?? settings.rules;
-            overrides[platform] = base.copyWith(minimumPoundsPerMile: r);
-          }
-          controller.update((s) => s.copyWith(platformOverrides: overrides));
-        },
-      ),
+    return ThresholdRuleTile(
+      title: platform.displayName,
+      subtitle: 'Overrides minimum £/mile for ${platform.displayName} only.',
+      unitPrefix: '£',
+      unitSuffix: '/mile',
+      icon: platform == PlatformType.uber
+          ? Icons.directions_car_filled_outlined
+          : Icons.electric_car_outlined,
+      rule: override?.minimumPoundsPerMile ??
+          const ThresholdRule(enabled: false, value: 2.00),
+      onChanged: (r) {
+        final overrides =
+            Map<PlatformType, RuleConfig>.from(settings.platformOverrides);
+        // Turning the switch off must mean "no override — use the rules
+        // above" (this section's own subtitle promises exactly that), not
+        // "override present but disabled". Those are different in
+        // driver_settings.dart's rulesFor(): an entry in this map replaces
+        // the *entire* rule set for that platform, not just this one
+        // field, so leaving a disabled override behind silently skipped
+        // Uber's minimum £/mile check on a real device — jobs kept being
+        // accepted below the driver's configured minimum with no warning
+        // anywhere, since the Dashboard reads the global rule, not the
+        // per-platform effective one. Removing the entry outright is what
+        // actually restores "use the rules above".
+        if (!r.enabled) {
+          overrides.remove(platform);
+        } else {
+          final base = overrides[platform] ?? settings.rules;
+          overrides[platform] = base.copyWith(minimumPoundsPerMile: r);
+        }
+        controller.update((s) => s.copyWith(platformOverrides: overrides));
+      },
     );
   }
 }
