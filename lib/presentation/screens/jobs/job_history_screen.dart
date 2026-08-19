@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
@@ -8,8 +9,9 @@ import '../../../domain/enums/job_decision.dart';
 import '../../../domain/enums/platform_type.dart';
 import '../../../domain/repositories/job_repository.dart';
 import '../../widgets/decision_badge.dart';
+import '../../widgets/hero_header.dart';
+import '../../widgets/hero_pill.dart';
 import '../../widgets/section_card.dart';
-import '../../widgets/summary_card.dart';
 
 enum _QuickFilter { all, accepted, rejected, errors, uber, bolt }
 
@@ -46,56 +48,54 @@ class _JobHistoryScreenState extends ConsumerState<JobHistoryScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(jobHistoryControllerProvider);
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Jobs')),
-      body: Column(
-        children: [
-          // Only meaningful against the unfiltered, non-empty list — a
-          // summary of a list already narrowed to "Rejected" would just
-          // repeat what the list itself already shows, and an empty history
-          // already gets its own full explanation from [_EmptyState] below,
-          // so a second "no jobs yet" card right above it would be noise.
-          if (_active == _QuickFilter.all && state.jobs.isNotEmpty) ...[
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-              child: _JobsSummaryCard(jobs: state.jobs),
-            ),
-          ],
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            child: SizedBox(
-              height: 48,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                children: [
-                  for (final filter in _QuickFilter.values) ...[
-                    ChoiceChip(
-                      label: Text(_labelFor(filter)),
-                      selected: _active == filter,
-                      onSelected: (_) => _applyFilter(filter),
-                    ),
-                    const SizedBox(width: 8),
-                  ],
-                ],
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light,
+      child: Scaffold(
+        body: Column(
+          children: [
+            HeroHeader(
+              child: _JobsHeroBody(
+                jobs: state.jobs,
+                filterLabel: _labelFor(_active),
+                isAllFilter: _active == _QuickFilter.all,
               ),
             ),
-          ),
-          Expanded(
-            child: state.isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : state.jobs.isEmpty
-                    ? const _EmptyState()
-                    : ListView.builder(
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                        itemCount: state.jobs.length,
-                        itemBuilder: (context, i) => Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: _JobHistoryTile(job: state.jobs[i]),
-                        ),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: SizedBox(
+                height: 48,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  children: [
+                    for (final filter in _QuickFilter.values) ...[
+                      ChoiceChip(
+                        label: Text(_labelFor(filter)),
+                        selected: _active == filter,
+                        onSelected: (_) => _applyFilter(filter),
                       ),
-          ),
-        ],
+                      const SizedBox(width: 8),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+            Expanded(
+              child: state.isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : state.jobs.isEmpty
+                      ? const _EmptyState()
+                      : ListView.builder(
+                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                          itemCount: state.jobs.length,
+                          itemBuilder: (context, i) => Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: _JobHistoryTile(job: state.jobs[i]),
+                          ),
+                        ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -110,28 +110,65 @@ class _JobHistoryScreenState extends ConsumerState<JobHistoryScreen> {
       };
 }
 
-/// "How's my day going" at a glance — the same job-to-be-done the Rules
-/// screen's summary card solves ("is this actually what I think it is"),
-/// applied to job history instead of rule configuration. Only ever rendered
-/// with a non-empty [jobs] — [_EmptyState] already covers the empty case.
-class _JobsSummaryCard extends StatelessWidget {
-  const _JobsSummaryCard({required this.jobs});
+/// The hero's content: screen title plus "how's my day going" at a glance —
+/// the same job-to-be-done the Rules screen's hero solves ("is this
+/// actually what I think it is"), applied to job history instead of rule
+/// configuration. [jobs] is whatever the active filter currently shows, so
+/// the status line always describes what's actually on screen (a narrowed
+/// filter — "Rejected: 3 jobs" — rather than repeating the unfiltered total
+/// or, worse, claiming there's nothing when a filter just has zero matches).
+class _JobsHeroBody extends StatelessWidget {
+  const _JobsHeroBody({required this.jobs, required this.filterLabel, required this.isAllFilter});
 
   final List<TaxiJob> jobs;
+  final String filterLabel;
+  final bool isAllFilter;
 
   @override
   Widget build(BuildContext context) {
     final accepted = jobs.where((j) => j.decision == JobDecision.accepted).toList();
     final rejected = jobs.where((j) => j.decision == JobDecision.rejected).length;
     final earned = accepted.fold<double>(0, (sum, j) => sum + (j.fare ?? 0));
+    final count = jobs.length;
+    final statusLine = isAllFilter
+        ? '$count job${count == 1 ? '' : 's'} recorded'
+        : '$filterLabel: $count job${count == 1 ? '' : 's'}';
 
-    return SummaryCard(
-      icon: Icons.local_taxi_outlined,
-      headline: '${jobs.length} job${jobs.length == 1 ? '' : 's'} recorded',
-      chips: [
-        '${accepted.length} accepted',
-        '$rejected rejected',
-        if (earned > 0) '£${earned.toStringAsFixed(2)} earned',
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Jobs',
+            style: TextStyle(
+                color: Colors.white, fontWeight: FontWeight.w800, fontSize: 26, letterSpacing: -0.3)),
+        const SizedBox(height: 18),
+        Row(
+          children: [
+            const Icon(Icons.local_taxi_outlined, color: Colors.white, size: 20),
+            const SizedBox(width: 8),
+            Text(
+              statusLine,
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 16),
+            ),
+          ],
+        ),
+        // The accepted/rejected/earned breakdown only makes sense against
+        // the unfiltered, non-empty list — breaking an already-"Accepted"-
+        // filtered list down into "accepted vs rejected" would be a
+        // tautology, and an empty list already gets its own full
+        // explanation from [_EmptyState] directly below, so repeating it
+        // here too would just be noise stacked on noise.
+        if (isAllFilter && jobs.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              HeroPill(label: '${accepted.length} accepted'),
+              HeroPill(label: '$rejected rejected'),
+              if (earned > 0) HeroPill(label: '£${earned.toStringAsFixed(2)} earned'),
+            ],
+          ),
+        ],
       ],
     );
   }

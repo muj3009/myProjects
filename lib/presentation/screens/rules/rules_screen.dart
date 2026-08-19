@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../application/state/settings_controller.dart';
 import '../../../domain/entities/rule_config.dart';
 import '../../../domain/enums/distance_unit.dart';
 import '../../../domain/enums/platform_type.dart';
+import '../../widgets/hero_header.dart';
+import '../../widgets/hero_pill.dart';
 import '../../widgets/section_card.dart';
 import '../../widgets/section_header.dart';
-import '../../widgets/summary_card.dart';
 import 'widgets/postcode_blocklist_tile.dart';
 import 'widgets/threshold_rule_tile.dart';
 
@@ -36,13 +38,18 @@ class RulesScreen extends ConsumerWidget {
     final distanceUnitLabel =
         settings.distanceUnit == DistanceUnit.miles ? 'mi' : 'km';
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Rules')),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          _RulesSummaryCard(rules: rules, distanceUnitLabel: distanceUnitLabel),
-          const SizedBox(height: 24),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light,
+      child: Scaffold(
+        body: Column(
+          children: [
+            HeroHeader(
+              child: _RulesHeroBody(rules: rules, distanceUnitLabel: distanceUnitLabel),
+            ),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
           const SectionHeader('CORE RULE'),
           _FeaturedRuleCard(
             child: ThresholdRuleTile(
@@ -180,7 +187,11 @@ class RulesScreen extends ConsumerWidget {
               ],
             ),
           ),
-        ],
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -229,13 +240,13 @@ class _FeaturedRuleCard extends StatelessWidget {
   }
 }
 
-/// "Did I actually set this up right?" at a glance — the single highest-value
-/// addition to this screen: previously verifying the driver's own rule setup
+/// The hero's content: the screen title plus "did I actually set this up
+/// right" at a glance — previously verifying the driver's own rule setup
 /// meant scrolling and reading every card. Empty when no filters are active
 /// so the fallback behavior (every job passes through) is stated plainly
 /// rather than just... absent.
-class _RulesSummaryCard extends StatelessWidget {
-  const _RulesSummaryCard({required this.rules, required this.distanceUnitLabel});
+class _RulesHeroBody extends StatelessWidget {
+  const _RulesHeroBody({required this.rules, required this.distanceUnitLabel});
 
   final RuleConfig rules;
   final String distanceUnitLabel;
@@ -260,13 +271,38 @@ class _RulesSummaryCard extends StatelessWidget {
         'Counter-offer at ${rules.counterOfferBandPercent.value.toStringAsFixed(0)}%',
     ];
 
-    return SummaryCard(
-      icon: Icons.fact_check_outlined,
-      headline: active.isEmpty ? 'No filters active' : '${active.length} rule${active.length == 1 ? '' : 's'} active',
-      emptyMessage: active.isEmpty
-          ? 'Every job passes straight through unless you turn a rule on below.'
-          : null,
-      chips: active,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Rules',
+            style: TextStyle(
+                color: Colors.white, fontWeight: FontWeight.w800, fontSize: 26, letterSpacing: -0.3)),
+        const SizedBox(height: 18),
+        Row(
+          children: [
+            const Icon(Icons.fact_check_outlined, color: Colors.white, size: 20),
+            const SizedBox(width: 8),
+            Text(
+              active.isEmpty ? 'No filters active' : '${active.length} rule${active.length == 1 ? '' : 's'} active',
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 16),
+            ),
+          ],
+        ),
+        if (active.isEmpty) ...[
+          const SizedBox(height: 6),
+          const Text(
+            'Every job passes straight through unless you turn a rule on below.',
+            style: TextStyle(color: Colors.white70, fontSize: 14),
+          ),
+        ] else ...[
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [for (final label in active) HeroPill(label: label)],
+          ),
+        ],
+      ],
     );
   }
 }

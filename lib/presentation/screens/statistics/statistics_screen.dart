@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../application/state/statistics_controller.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../domain/repositories/job_repository.dart';
+import '../../widgets/hero_header.dart';
+import '../../widgets/hero_pill.dart';
 import '../../widgets/section_card.dart';
 import '../../widgets/section_header.dart';
 import '../../widgets/stat_tile.dart';
@@ -21,11 +24,16 @@ class StatisticsScreen extends ConsumerWidget {
     final controller = ref.read(statisticsControllerProvider.notifier);
     final stats = state.statistics;
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Statistics')),
-      body: RefreshIndicator(
-        onRefresh: controller.refresh,
-        child: ListView(
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light,
+      child: Scaffold(
+        body: Column(
+          children: [
+            HeroHeader(child: _StatsHeroBody(stats: stats)),
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: controller.refresh,
+                child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
             SegmentedButton<StatsRange>(
@@ -45,8 +53,6 @@ class StatisticsScreen extends ConsumerWidget {
             const SizedBox(height: 16),
             if (state.isLoading)
               const Center(child: CircularProgressIndicator()),
-            _HeroCard(stats: stats),
-            const SizedBox(height: 16),
             DecisionBreakdownChart(
               accepted: stats.jobsAccepted,
               rejected: stats.jobsRejected,
@@ -121,71 +127,61 @@ class StatisticsScreen extends ConsumerWidget {
               ),
             ),
           ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-/// Headline figure at the top of the screen — what the driver actually
-/// earned (accepted fare) in the selected range, not the total of every job
-/// seen, since that's the number that answers "how did I do?" at a glance.
-/// Acceptance rate rides alongside as the secondary figure, since a driver
-/// judging their own filter rules cares about both together, not just one.
-class _HeroCard extends StatelessWidget {
-  const _HeroCard({required this.stats});
+/// The hero's content: screen title plus the headline figure — what the
+/// driver actually earned (accepted fare) in the selected range, not the
+/// total of every job seen, since that's the number that answers "how did I
+/// do?" at a glance. Acceptance rate rides alongside as the secondary
+/// figure, since a driver judging their own filter rules cares about both
+/// together, not just one.
+class _StatsHeroBody extends StatelessWidget {
+  const _StatsHeroBody({required this.stats});
 
   final JobStatistics stats;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return SectionCard(
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Accepted fare',
-                  style: theme.textTheme.bodyMedium
-                      ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '£${stats.acceptedFare.toStringAsFixed(2)}',
-                  style: theme.textTheme.headlineLarge
-                      ?.copyWith(color: StatusColors.accepted),
-                ),
-              ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Statistics',
+            style: TextStyle(
+                color: Colors.white, fontWeight: FontWeight.w800, fontSize: 26, letterSpacing: -0.3)),
+        const SizedBox(height: 20),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('Accepted fare', style: TextStyle(color: Colors.white70, fontSize: 14)),
+                  const SizedBox(height: 4),
+                  Text(
+                    '£${stats.acceptedFare.toStringAsFixed(2)}',
+                    style: TextStyle(
+                        color: StatusColors.accepted,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 34,
+                        letterSpacing: -0.5),
+                  ),
+                ],
+              ),
             ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  '${(stats.acceptanceRate * 100).toStringAsFixed(0)}%',
-                  style: theme.textTheme.headlineMedium
-                      ?.copyWith(color: theme.colorScheme.primary),
-                ),
-                Text(
-                  'accepted',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant, fontSize: 12),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+            HeroPill(label: '${(stats.acceptanceRate * 100).toStringAsFixed(0)}% accepted'),
+          ],
+        ),
+      ],
     );
   }
 }

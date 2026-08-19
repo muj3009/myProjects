@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../application/state/job_history_controller.dart';
@@ -7,6 +8,7 @@ import '../../../application/state/settings_controller.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../domain/enums/distance_unit.dart';
 import '../../../domain/enums/platform_type.dart';
+import '../../widgets/hero_header.dart';
 import '../../widgets/section_card.dart';
 import '../../widgets/tinted_icon_circle.dart';
 import '../debug/debug_screen.dart';
@@ -27,9 +29,37 @@ class SettingsScreen extends ConsumerWidget {
     final controller = ref.read(settingsControllerProvider.notifier);
     final minRule = settings.rules.minimumPoundsPerMile;
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
-      body: ListView(
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light,
+      child: Scaffold(
+        body: Column(
+          children: [
+            HeroHeader(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Settings',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 26,
+                          letterSpacing: -0.3)),
+                  const SizedBox(height: 8),
+                  Text(
+                    '£${minRule.value.toStringAsFixed(2)}/mile · '
+                    '${switch (settings.platformSelection) {
+                      PlatformSelection.uber => 'Uber',
+                      PlatformSelection.bolt => 'Bolt',
+                      PlatformSelection.both => 'Both',
+                    }} · '
+                    '${settings.distanceUnit == DistanceUnit.miles ? 'Miles' : 'Kilometres'}',
+                    style: const TextStyle(color: Colors.white70, fontSize: 14),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           Text('Minimum £ per mile',
@@ -173,6 +203,10 @@ class SettingsScreen extends ConsumerWidget {
             label: const Text('Clear job history'),
           ),
         ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
