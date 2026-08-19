@@ -9,6 +9,7 @@ import '../../../domain/enums/platform_type.dart';
 import '../../../domain/repositories/job_repository.dart';
 import '../../widgets/decision_badge.dart';
 import '../../widgets/section_card.dart';
+import '../../widgets/summary_card.dart';
 
 enum _QuickFilter { all, accepted, rejected, errors, uber, bolt }
 
@@ -49,18 +50,35 @@ class _JobHistoryScreenState extends ConsumerState<JobHistoryScreen> {
       appBar: AppBar(title: const Text('Jobs')),
       body: Column(
         children: [
+          // Only meaningful against the unfiltered, non-empty list — a
+          // summary of a list already narrowed to "Rejected" would just
+          // repeat what the list itself already shows, and an empty history
+          // already gets its own full explanation from [_EmptyState] below,
+          // so a second "no jobs yet" card right above it would be noise.
+          if (_active == _QuickFilter.all && state.jobs.isNotEmpty) ...[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+              child: _JobsSummaryCard(jobs: state.jobs),
+            ),
+          ],
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Wrap(
-              spacing: 8,
-              children: [
-                for (final filter in _QuickFilter.values)
-                  ChoiceChip(
-                    label: Text(_labelFor(filter)),
-                    selected: _active == filter,
-                    onSelected: (_) => _applyFilter(filter),
-                  ),
-              ],
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: SizedBox(
+              height: 48,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                children: [
+                  for (final filter in _QuickFilter.values) ...[
+                    ChoiceChip(
+                      label: Text(_labelFor(filter)),
+                      selected: _active == filter,
+                      onSelected: (_) => _applyFilter(filter),
+                    ),
+                    const SizedBox(width: 8),
+                  ],
+                ],
+              ),
             ),
           ),
           Expanded(
@@ -69,7 +87,7 @@ class _JobHistoryScreenState extends ConsumerState<JobHistoryScreen> {
                 : state.jobs.isEmpty
                     ? const _EmptyState()
                     : ListView.builder(
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                         itemCount: state.jobs.length,
                         itemBuilder: (context, i) => Padding(
                           padding: const EdgeInsets.only(bottom: 12),
@@ -90,6 +108,33 @@ class _JobHistoryScreenState extends ConsumerState<JobHistoryScreen> {
         _QuickFilter.uber => 'Uber',
         _QuickFilter.bolt => 'Bolt',
       };
+}
+
+/// "How's my day going" at a glance — the same job-to-be-done the Rules
+/// screen's summary card solves ("is this actually what I think it is"),
+/// applied to job history instead of rule configuration. Only ever rendered
+/// with a non-empty [jobs] — [_EmptyState] already covers the empty case.
+class _JobsSummaryCard extends StatelessWidget {
+  const _JobsSummaryCard({required this.jobs});
+
+  final List<TaxiJob> jobs;
+
+  @override
+  Widget build(BuildContext context) {
+    final accepted = jobs.where((j) => j.decision == JobDecision.accepted).toList();
+    final rejected = jobs.where((j) => j.decision == JobDecision.rejected).length;
+    final earned = accepted.fold<double>(0, (sum, j) => sum + (j.fare ?? 0));
+
+    return SummaryCard(
+      icon: Icons.local_taxi_outlined,
+      headline: '${jobs.length} job${jobs.length == 1 ? '' : 's'} recorded',
+      chips: [
+        '${accepted.length} accepted',
+        '$rejected rejected',
+        if (earned > 0) '£${earned.toStringAsFixed(2)} earned',
+      ],
+    );
+  }
 }
 
 class _EmptyState extends StatelessWidget {

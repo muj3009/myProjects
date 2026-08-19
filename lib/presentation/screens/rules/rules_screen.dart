@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../application/state/settings_controller.dart';
-import '../../../core/theme/app_theme.dart';
 import '../../../domain/entities/rule_config.dart';
 import '../../../domain/enums/distance_unit.dart';
 import '../../../domain/enums/platform_type.dart';
 import '../../widgets/section_card.dart';
 import '../../widgets/section_header.dart';
+import '../../widgets/summary_card.dart';
 import 'widgets/postcode_blocklist_tile.dart';
 import 'widgets/threshold_rule_tile.dart';
 
@@ -242,7 +242,6 @@ class _RulesSummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final active = <String>[
       if (rules.minimumPoundsPerMile.enabled)
         '£${rules.minimumPoundsPerMile.value.toStringAsFixed(2)}/mile min',
@@ -261,55 +260,13 @@ class _RulesSummaryCard extends StatelessWidget {
         'Counter-offer at ${rules.counterOfferBandPercent.value.toStringAsFixed(0)}%',
     ];
 
-    return Container(
-      decoration: BoxDecoration(
-        color: AppTheme.ink,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      padding: const EdgeInsets.all(18),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(Icons.fact_check_outlined, color: Colors.white, size: 20),
-              const SizedBox(width: 8),
-              Text(
-                active.isEmpty ? 'No filters active' : '${active.length} rule${active.length == 1 ? '' : 's'} active',
-                style: theme.textTheme.titleMedium
-                    ?.copyWith(fontWeight: FontWeight.w800, color: Colors.white),
-              ),
-            ],
-          ),
-          if (active.isEmpty) ...[
-            const SizedBox(height: 6),
-            Text(
-              'Every job passes straight through unless you turn a rule on below.',
-              style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white70),
-            ),
-          ] else ...[
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                for (final label in active)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      label,
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13),
-                    ),
-                  ),
-              ],
-            ),
-          ],
-        ],
-      ),
+    return SummaryCard(
+      icon: Icons.fact_check_outlined,
+      headline: active.isEmpty ? 'No filters active' : '${active.length} rule${active.length == 1 ? '' : 's'} active',
+      emptyMessage: active.isEmpty
+          ? 'Every job passes straight through unless you turn a rule on below.'
+          : null,
+      chips: active,
     );
   }
 }

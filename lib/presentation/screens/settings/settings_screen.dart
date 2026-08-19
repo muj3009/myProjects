@@ -75,76 +75,35 @@ class SettingsScreen extends ConsumerWidget {
           const SizedBox(height: 28),
           Text('Platform', style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 8),
-          SectionCard(
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            child: Column(
-              children: [
-                for (final selection in PlatformSelection.values)
-                  RadioListTile<PlatformSelection>(
-                    title: Text(switch (selection) {
-                      PlatformSelection.uber => 'Uber only',
-                      PlatformSelection.bolt => 'Bolt only',
-                      PlatformSelection.both => 'Both Uber and Bolt',
-                    }),
-                    value: selection,
-                    groupValue: settings.platformSelection,
-                    selected: settings.platformSelection == selection,
-                    selectedTileColor: Theme.of(context)
-                        .colorScheme
-                        .primary
-                        .withValues(alpha: 0.07),
-                    activeColor: Theme.of(context).colorScheme.primary,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16)),
-                    onChanged: (v) => controller
-                        .update((s) => s.copyWith(platformSelection: v)),
-                  ),
-              ],
-            ),
+          // A 3-way choice like this doesn't need three full-height list
+          // rows with radio dots — the segmented control the Statistics
+          // screen already uses for its range picker says the same thing
+          // (Uber / Bolt / Both are mutually exclusive) in a third of the
+          // vertical space, and the selected segment is unmistakable
+          // without a separate radio glyph.
+          SegmentedButton<PlatformSelection>(
+            showSelectedIcon: false,
+            segments: const [
+              ButtonSegment(value: PlatformSelection.uber, label: Text('Uber')),
+              ButtonSegment(value: PlatformSelection.bolt, label: Text('Bolt')),
+              ButtonSegment(value: PlatformSelection.both, label: Text('Both')),
+            ],
+            selected: {settings.platformSelection},
+            onSelectionChanged: (s) =>
+                controller.update((st) => st.copyWith(platformSelection: s.first)),
           ),
           const SizedBox(height: 28),
           Text('Distance unit', style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 8),
-          SectionCard(
-            padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
-            child: Row(
-              children: [
-                Expanded(
-                  child: RadioListTile<DistanceUnit>(
-                    title: const Text('Miles'),
-                    value: DistanceUnit.miles,
-                    groupValue: settings.distanceUnit,
-                    selected: settings.distanceUnit == DistanceUnit.miles,
-                    selectedTileColor: Theme.of(context)
-                        .colorScheme
-                        .primary
-                        .withValues(alpha: 0.07),
-                    activeColor: Theme.of(context).colorScheme.primary,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16)),
-                    onChanged: (v) =>
-                        controller.update((s) => s.copyWith(distanceUnit: v)),
-                  ),
-                ),
-                Expanded(
-                  child: RadioListTile<DistanceUnit>(
-                    title: const Text('Kilometres'),
-                    value: DistanceUnit.kilometres,
-                    groupValue: settings.distanceUnit,
-                    selected: settings.distanceUnit == DistanceUnit.kilometres,
-                    selectedTileColor: Theme.of(context)
-                        .colorScheme
-                        .primary
-                        .withValues(alpha: 0.07),
-                    activeColor: Theme.of(context).colorScheme.primary,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16)),
-                    onChanged: (v) =>
-                        controller.update((s) => s.copyWith(distanceUnit: v)),
-                  ),
-                ),
-              ],
-            ),
+          SegmentedButton<DistanceUnit>(
+            showSelectedIcon: false,
+            segments: const [
+              ButtonSegment(value: DistanceUnit.miles, label: Text('Miles')),
+              ButtonSegment(value: DistanceUnit.kilometres, label: Text('Kilometres')),
+            ],
+            selected: {settings.distanceUnit},
+            onSelectionChanged: (s) =>
+                controller.update((st) => st.copyWith(distanceUnit: s.first)),
           ),
           const SizedBox(height: 28),
           Text('App name', style: Theme.of(context).textTheme.titleLarge),
