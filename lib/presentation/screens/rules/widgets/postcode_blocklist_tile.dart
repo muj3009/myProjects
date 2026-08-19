@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../domain/entities/rule_config.dart';
-import 'threshold_rule_tile.dart' show RuleIcon;
+import 'threshold_rule_tile.dart' show RuleIcon, ScrollableSubtitle;
 
 /// Rule Builder row for [PostcodeBlocklistConfig] — same on/off switch
 /// pattern as [ThresholdRuleTile] (compact when off, expands to an editor
@@ -95,13 +95,7 @@ class _PostcodeBlocklistTileState extends State<PostcodeBlocklistTile> {
                         style: theme.textTheme.titleMedium
                             ?.copyWith(fontWeight: FontWeight.w700)),
                     const SizedBox(height: 2),
-                    Text(
-                      'Always reject jobs going to these areas.',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant),
-                    ),
+                    const ScrollableSubtitle('Always reject jobs going to these areas.'),
                   ],
                 ),
               ),

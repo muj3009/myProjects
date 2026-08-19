@@ -118,13 +118,7 @@ class _ThresholdRuleTileState extends State<ThresholdRuleTile> {
                           ?.copyWith(fontWeight: FontWeight.w700),
                     ),
                     const SizedBox(height: 2),
-                    Text(
-                      widget.subtitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant),
-                    ),
+                    ScrollableSubtitle(widget.subtitle),
                   ],
                 ),
               ),
@@ -170,6 +164,34 @@ class _ThresholdRuleTileState extends State<ThresholdRuleTile> {
                 : const SizedBox(width: double.infinity),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// A single-line description that scrolls horizontally instead of being
+/// truncated with an ellipsis — a compact collapsed row only has room for
+/// one line, but cutting the description off mid-word made it unreadable
+/// (e.g. "Long drives just to reach the p…"). A driver who wants the full
+/// text can swipe it into view instead of losing the second half entirely.
+/// Public so [PostcodeBlocklistTile] reuses the exact same treatment.
+class ScrollableSubtitle extends StatelessWidget {
+  const ScrollableSubtitle(this.text, {super.key});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Text(
+        text,
+        maxLines: 1,
+        softWrap: false,
+        style: Theme.of(context)
+            .textTheme
+            .bodyMedium
+            ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
       ),
     );
   }

@@ -12,6 +12,7 @@ import '../../widgets/decision_badge.dart';
 import '../../widgets/hero_header.dart';
 import '../../widgets/hero_pill.dart';
 import '../../widgets/section_card.dart';
+import '../../widgets/tinted_icon_circle.dart';
 
 enum _QuickFilter { all, accepted, rejected, errors, uber, bolt }
 
@@ -70,8 +71,16 @@ class _JobHistoryScreenState extends ConsumerState<JobHistoryScreen> {
                   children: [
                     for (final filter in _QuickFilter.values) ...[
                       ChoiceChip(
+                        avatar: TintedIconCircle(
+                          icon: _iconFor(filter),
+                          color: _colorFor(filter),
+                          diameter: 20,
+                          iconSize: 11,
+                        ),
+                        showCheckmark: false,
                         label: Text(_labelFor(filter)),
                         selected: _active == filter,
+                        selectedColor: _colorFor(filter).withValues(alpha: 0.18),
                         onSelected: (_) => _applyFilter(filter),
                       ),
                       const SizedBox(width: 8),
@@ -107,6 +116,28 @@ class _JobHistoryScreenState extends ConsumerState<JobHistoryScreen> {
         _QuickFilter.errors => 'Errors',
         _QuickFilter.uber => 'Uber',
         _QuickFilter.bolt => 'Bolt',
+      };
+
+  // A vivid, distinct hue per filter (amber/blue/purple/green/red/orange) —
+  // matching the driver-requested reference palette — rather than the app's
+  // own more muted StatusColors. Accepted/Rejected still land on green/red
+  // respectively so the basic accept-good/reject-bad convention isn't lost.
+  Color _colorFor(_QuickFilter filter) => switch (filter) {
+        _QuickFilter.all => const Color(0xFF4C6EF5),
+        _QuickFilter.accepted => const Color(0xFF2FA968),
+        _QuickFilter.rejected => const Color(0xFFE5484D),
+        _QuickFilter.errors => const Color(0xFFA855F7),
+        _QuickFilter.uber => const Color(0xFFD4A72C),
+        _QuickFilter.bolt => const Color(0xFFF2994A),
+      };
+
+  IconData _iconFor(_QuickFilter filter) => switch (filter) {
+        _QuickFilter.all => Icons.apps,
+        _QuickFilter.accepted => Icons.check_circle,
+        _QuickFilter.rejected => Icons.cancel,
+        _QuickFilter.errors => Icons.error_outline,
+        _QuickFilter.uber => Icons.directions_car_filled_outlined,
+        _QuickFilter.bolt => Icons.electric_car_outlined,
       };
 }
 
