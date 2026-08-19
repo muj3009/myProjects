@@ -56,6 +56,9 @@ class DriverSettingsMapper {
         'minimumHourlyRate': _thresholdToJson(config.minimumHourlyRate),
         'postcodeBlocklist': _postcodeBlocklistToJson(config.postcodeBlocklist),
         'counterOfferBandPercent': _thresholdToJson(config.counterOfferBandPercent),
+        'counterOfferFareFloor': _thresholdToJson(config.counterOfferFareFloor),
+        'highValueJob': _highValueJobToJson(config.highValueJob),
+        'quietTimeMinimumPoundsPerMile': _thresholdToJson(config.quietTimeMinimumPoundsPerMile),
       };
 
   static RuleConfig _ruleConfigFromJson(Map<String, dynamic> json) {
@@ -74,6 +77,30 @@ class DriverSettingsMapper {
           _postcodeBlocklistFromJson(json['postcodeBlocklist'], defaults.postcodeBlocklist),
       counterOfferBandPercent: _thresholdFromJson(
           json['counterOfferBandPercent'], defaults.counterOfferBandPercent),
+      counterOfferFareFloor: _thresholdFromJson(
+          json['counterOfferFareFloor'], defaults.counterOfferFareFloor),
+      highValueJob: _highValueJobFromJson(json['highValueJob'], defaults.highValueJob),
+      quietTimeMinimumPoundsPerMile: _thresholdFromJson(
+          json['quietTimeMinimumPoundsPerMile'], defaults.quietTimeMinimumPoundsPerMile),
+    );
+  }
+
+  static Map<String, dynamic> _highValueJobToJson(HighValueJobOverride override) => {
+        'enabled': override.enabled,
+        'fareFloor': override.fareFloor,
+        'acceptRateFloor': override.acceptRateFloor,
+      };
+
+  static HighValueJobOverride _highValueJobFromJson(
+    dynamic json,
+    HighValueJobOverride fallback,
+  ) {
+    if (json == null) return fallback;
+    final map = json as Map<String, dynamic>;
+    return HighValueJobOverride(
+      enabled: map['enabled'] as bool? ?? fallback.enabled,
+      fareFloor: (map['fareFloor'] as num?)?.toDouble() ?? fallback.fareFloor,
+      acceptRateFloor: (map['acceptRateFloor'] as num?)?.toDouble() ?? fallback.acceptRateFloor,
     );
   }
 

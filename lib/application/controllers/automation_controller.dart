@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../core/constants/app_constants.dart';
 import '../../core/utils/app_logger.dart';
 import '../../domain/entities/driver_settings.dart';
 import '../../domain/entities/taxi_job.dart';
@@ -351,7 +352,7 @@ class AutomationController extends StateNotifier<AutomationState> {
       rawDetectedText: model.rawText,
     );
 
-    final outcome = _engine.evaluate(provisional, settings);
+    final outcome = _engine.evaluate(provisional, settings, isBusyTime: await _isBusyTime());
 
     if (outcome.decision != JobDecision.accepted && outcome.decision != JobDecision.rejected) {
       // Insufficient information — never guess (spec section 8/24): no
@@ -451,6 +452,24 @@ class AutomationController extends StateNotifier<AutomationState> {
     );
   }
 
+  /// Driver request: "busy time" is 8 or more jobs detected (any platform,
+  /// any decision — a reject/error still means an offer genuinely came in)
+  /// within the last 5 minutes. Queried fresh before each decision rather
+  /// than maintained as separate in-memory state, since [_jobRepository]
+  /// already records every non-duplicate detection regardless of outcome —
+  /// see [JobDecisionEngine.evaluate]'s isBusyTime parameter for how the
+  /// result is used. A failed query is treated as "not busy" (the safer,
+  /// more conservative default — it only widens acceptance, never narrows
+  /// it, so a transient DB error can't accidentally block a job).
+  Future<bool> _isBusyTime() async {
+    final since = DateTime.now().subtract(AppConstants.busyTimeWindow);
+    final result = await _jobRepository.getHistory(filter: JobHistoryFilter(since: since));
+    return result.when(
+      ok: (jobs) => jobs.length >= AppConstants.busyTimeJobThreshold,
+      err: (_) => false,
+    );
+  }
+
   /// Returns true only when this specific card was actually, successfully
   /// accepted (the action confirmed, not just decided). [acceptGuard] is
   /// shared across every card in the same detected batch — see
@@ -525,7 +544,7 @@ class AutomationController extends StateNotifier<AutomationState> {
       }
       _inFlightFingerprints.add(fingerprint);
 
-      final outcome = _engine.evaluate(provisional, settings);
+      final outcome = _engine.evaluate(provisional, settings, isBusyTime: await _isBusyTime());
       final job = provisional.copyWith(
         decision: outcome.decision,
         poundsPerMile: outcome.poundsPerMile,

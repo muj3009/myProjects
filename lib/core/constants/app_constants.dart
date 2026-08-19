@@ -31,4 +31,28 @@ class AppConstants {
   /// Default value for [RuleConfig.counterOfferBandPercent] — driver-editable
   /// in the Rules screen, matching the product spec's own 85% example.
   static const double defaultCounterOfferBandPercent = 85.0;
+
+  /// Default value for [RuleConfig.counterOfferFareFloor] — driver request:
+  /// a job worth £3.50 or more gets a counter-offer rather than an outright
+  /// reject when it only fails on £/mile.
+  static const double defaultCounterOfferFareFloor = 3.50;
+
+  /// Defaults for [RuleConfig.highValueJob] — driver request: a £15+ job at
+  /// £1.50+/mile is accepted immediately, bypassing every other rule except
+  /// the postcode blocklist; a £15+ job below that rate gets a counter-offer
+  /// instead of a reject.
+  static const double defaultHighValueJobFareFloor = 15.0;
+  static const double defaultHighValueJobAcceptRateFloor = 1.50;
+
+  /// Default value for [RuleConfig.quietTimeMinimumPoundsPerMile] — driver
+  /// request: during quiet periods, relax the effective minimum £/mile down
+  /// to this value (never up) rather than the driver's normal minimum.
+  static const double defaultQuietTimeMinimumPoundsPerMile = 1.60;
+
+  /// "Busy time" definition (driver-confirmed numbers, not currently
+  /// driver-editable): this many or more jobs detected within
+  /// [busyTimeWindow] counts as busy — see JobDecisionEngine's isBusyTime
+  /// parameter and AutomationController's busy-time detection.
+  static const int busyTimeJobThreshold = 8;
+  static const Duration busyTimeWindow = Duration(minutes: 5);
 }

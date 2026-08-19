@@ -41,7 +41,13 @@ class JobDecisionEngine {
   /// the Rule Builder UI so it can render a row per rule.
   List<Rule> get availableRules => List.unmodifiable(_rules);
 
-  DecisionOutcome evaluate(TaxiJob job, DriverSettings settings) {
+  /// [isBusyTime] — driver request: whether 8+ jobs have been detected in
+  /// the last 5 minutes (computed by the caller — AutomationController —
+  /// since that requires job-history I/O this pure engine deliberately
+  /// doesn't do itself; see RuleConfig.quietTimeMinimumPoundsPerMile).
+  /// Defaults to false (treated as "not busy") so any caller that doesn't
+  /// pass it gets the same behavior as before this parameter existed.
+  DecisionOutcome evaluate(TaxiJob job, DriverSettings settings, {bool isBusyTime = false}) {
     final ruleConfig = settings.rulesFor(job.platform);
     final view = RuleConfigView(
       rules: ruleConfig,
@@ -66,7 +72,77 @@ class JobDecisionEngine {
         ? job.fare! / (job.estimatedDurationMinutes! / 60.0)
         : null;
 
+    // Driver request: a "high-value job" — at or above a fare floor and a
+    // £/mile floor — is accepted immediately, ignoring every other rule
+    // (pickup distance, trip distance, minimum fare, hourly rate). The one
+    // deliberate exception is the postcode blocklist: driver-confirmed that
+    // a destination they've explicitly blocked must still always be
+    // rejected, no matter how good the fare is. Checked before the normal
+    // fail/unknown/accept decision tree entirely, since "ignore all other
+    // filters" means this can't be scoped to "only when nothing else failed"
+    // the way the counter-offer rescues below are.
+    if (ruleConfig.highValueJob.enabled && job.fare != null) {
+      final highValue = ruleConfig.highValueJob;
+      if (job.fare! >= highValue.fareFloor) {
+        final postcodeBlocked = evaluations.any(
+          (e) => e.ruleName == const PostcodeBlocklistRule().name && e.result == RuleResult.fail,
+        );
+        if (!postcodeBlocked && poundsPerMile != null) {
+          if (poundsPerMile >= highValue.acceptRateFloor) {
+            return DecisionOutcome(
+              decision: JobDecision.accepted,
+              evaluations: evaluations,
+              reason: _bulletList([
+                'Fare is £${job.fare!.toStringAsFixed(2)} (at or above your £${highValue.fareFloor.toStringAsFixed(2)} '
+                    'high-value threshold) at £${poundsPerMile.toStringAsFixed(2)}/mile (at or above your '
+                    '£${highValue.acceptRateFloor.toStringAsFixed(2)}/mile floor) — accepted immediately, '
+                    'ignoring your other rules',
+              ]),
+              poundsPerMile: poundsPerMile,
+              estimatedHourlyRate: hourlyRate,
+            );
+          } else if (job.platform == PlatformType.bolt) {
+            return DecisionOutcome(
+              decision: JobDecision.counterOffered,
+              evaluations: evaluations,
+              reason: _bulletList([
+                'Fare is £${job.fare!.toStringAsFixed(2)} (at or above your £${highValue.fareFloor.toStringAsFixed(2)} '
+                    'high-value threshold) but only £${poundsPerMile.toStringAsFixed(2)}/mile — JobFilter sent a '
+                    'counter-offer instead of rejecting it',
+              ]),
+              poundsPerMile: poundsPerMile,
+              estimatedHourlyRate: hourlyRate,
+            );
+          }
+        }
+      }
+    }
+
     if (failed.isNotEmpty) {
+      // Driver request: during a quiet period (not busy — see isBusyTime),
+      // relax the effective minimum £/mile down to this value rather than
+      // rejecting. Scoped the same as the rescues below (only when £/mile is
+      // the sole failing rule) and checked first, since an outright accept
+      // is a better outcome for the driver than a counter-offer attempt.
+      if (ruleConfig.quietTimeMinimumPoundsPerMile.enabled &&
+          !isBusyTime &&
+          failed.length == 1 &&
+          failed.first.ruleName == const MinimumPoundsPerMileRule().name &&
+          poundsPerMile != null &&
+          poundsPerMile >= ruleConfig.quietTimeMinimumPoundsPerMile.value) {
+        return DecisionOutcome(
+          decision: JobDecision.accepted,
+          evaluations: evaluations,
+          reason: _bulletList([
+            'It\'s quiet right now, so JobFilter relaxed your minimum down to '
+                '£${ruleConfig.quietTimeMinimumPoundsPerMile.value.toStringAsFixed(2)}/mile — this job pays '
+                '£${poundsPerMile.toStringAsFixed(2)}/mile, so it was accepted',
+          ]),
+          poundsPerMile: poundsPerMile,
+          estimatedHourlyRate: hourlyRate,
+        );
+      }
+
       // Driver request: a Bolt job that fails ONLY on £/mile, and isn't too
       // far under the threshold, gets a counter-offer instead of an outright
       // reject — see RuleConfig.counterOfferBandPercent's doc comment.
@@ -94,6 +170,32 @@ class JobDecisionEngine {
             estimatedHourlyRate: hourlyRate,
           );
         }
+      }
+
+      // Driver request: a flat-fare alternative to the percentage-based
+      // rescue above — a Bolt job worth at least this much still gets a
+      // counter-offer even if it's nowhere near the driver's minimum
+      // £/mile, since the total money can still make it worth trying for
+      // more rather than rejecting outright. Independent of the band-percent
+      // rescue above — either one qualifying is enough.
+      if (job.platform == PlatformType.bolt &&
+          ruleConfig.counterOfferFareFloor.enabled &&
+          failed.length == 1 &&
+          failed.first.ruleName == const MinimumPoundsPerMileRule().name &&
+          job.fare != null &&
+          job.fare! >= ruleConfig.counterOfferFareFloor.value) {
+        return DecisionOutcome(
+          decision: JobDecision.counterOffered,
+          evaluations: evaluations,
+          reason: _bulletList([
+            failed.first.detail,
+            'The fare is still £${job.fare!.toStringAsFixed(2)} (at or above your '
+                '£${ruleConfig.counterOfferFareFloor.value.toStringAsFixed(2)} counter-offer floor), so '
+                'JobFilter sent a counter-offer instead of rejecting it',
+          ]),
+          poundsPerMile: poundsPerMile,
+          estimatedHourlyRate: hourlyRate,
+        );
       }
 
       return DecisionOutcome(

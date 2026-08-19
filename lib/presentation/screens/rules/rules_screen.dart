@@ -10,6 +10,7 @@ import '../../widgets/hero_header.dart';
 import '../../widgets/hero_pill.dart';
 import '../../widgets/section_card.dart';
 import '../../widgets/section_header.dart';
+import 'widgets/high_value_job_tile.dart';
 import 'widgets/postcode_blocklist_tile.dart';
 import 'widgets/threshold_rule_tile.dart';
 
@@ -130,6 +131,34 @@ class RulesScreen extends ConsumerWidget {
                   color: const Color(0xFFD4A72C),
                   onChanged: (r) =>
                       updateRules((c) => c.copyWith(counterOfferBandPercent: r)),
+                ),
+                const _RowDivider(),
+                ThresholdRuleTile(
+                  title: 'Counter-offer worthwhile fares (Bolt)',
+                  subtitle: 'Fare at or above this still gets a counter, not a reject.',
+                  unitPrefix: '£',
+                  icon: Icons.local_offer_outlined,
+                  rule: rules.counterOfferFareFloor,
+                  color: const Color(0xFF84CC16),
+                  onChanged: (r) =>
+                      updateRules((c) => c.copyWith(counterOfferFareFloor: r)),
+                ),
+                const _RowDivider(),
+                HighValueJobTile(
+                  config: rules.highValueJob,
+                  onChanged: (v) => updateRules((c) => c.copyWith(highValueJob: v)),
+                ),
+                const _RowDivider(),
+                ThresholdRuleTile(
+                  title: 'Relax minimum £/mile when quiet',
+                  subtitle: 'Below 8 jobs in 5 minutes, accept above this rate instead.',
+                  unitPrefix: '£',
+                  unitSuffix: '/mile',
+                  icon: Icons.nightlight_outlined,
+                  rule: rules.quietTimeMinimumPoundsPerMile,
+                  color: const Color(0xFFB45309),
+                  onChanged: (r) =>
+                      updateRules((c) => c.copyWith(quietTimeMinimumPoundsPerMile: r)),
                 ),
               ],
             ),
@@ -275,6 +304,12 @@ class _RulesHeroBody extends StatelessWidget {
             '${rules.postcodeBlocklist.blockedPrefixes.length == 1 ? '' : 's'} blocked',
       if (rules.counterOfferBandPercent.enabled)
         'Counter-offer at ${rules.counterOfferBandPercent.value.toStringAsFixed(0)}%',
+      if (rules.counterOfferFareFloor.enabled)
+        'Counter-offer £${rules.counterOfferFareFloor.value.toStringAsFixed(2)}+ fares',
+      if (rules.highValueJob.enabled)
+        '£${rules.highValueJob.fareFloor.toStringAsFixed(0)}+ at £${rules.highValueJob.acceptRateFloor.toStringAsFixed(2)}/mi auto-accepts',
+      if (rules.quietTimeMinimumPoundsPerMile.enabled)
+        'Quiet-time min £${rules.quietTimeMinimumPoundsPerMile.value.toStringAsFixed(2)}/mile',
     ];
 
     return Column(

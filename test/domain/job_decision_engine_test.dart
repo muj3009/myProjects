@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:jobfilter/domain/entities/driver_settings.dart';
 import 'package:jobfilter/domain/entities/rule_config.dart';
 import 'package:jobfilter/domain/entities/taxi_job.dart';
+import 'package:jobfilter/domain/enums/distance_unit.dart';
 import 'package:jobfilter/domain/enums/job_decision.dart';
 import 'package:jobfilter/domain/enums/platform_type.dart';
 import 'package:jobfilter/domain/services/job_decision_engine.dart';
@@ -198,6 +199,198 @@ void main() {
         settings,
       );
       expect(outcome.decision, JobDecision.accepted);
+    });
+  });
+
+  group('counter-offer flat fare floor (Rule 8, driver request)', () {
+    test('Bolt job below minimum £/mile but at/above the fare floor is counter-offered', () {
+      final settings = DriverSettings(
+        rules: const RuleConfig(
+          minimumPoundsPerMile: ThresholdRule(enabled: true, value: 2.00),
+          counterOfferFareFloor: ThresholdRule(enabled: true, value: 3.50),
+        ),
+      );
+      final outcome = engine.evaluate(
+        _job(fare: 4.00, tripDistanceMiles: 5, platform: PlatformType.bolt), // £0.80/mile
+        settings,
+      );
+      expect(outcome.decision, JobDecision.counterOffered);
+    });
+
+    test('below the fare floor still rejects outright', () {
+      final settings = DriverSettings(
+        rules: const RuleConfig(
+          minimumPoundsPerMile: ThresholdRule(enabled: true, value: 2.00),
+          counterOfferFareFloor: ThresholdRule(enabled: true, value: 3.50),
+        ),
+      );
+      final outcome = engine.evaluate(
+        _job(fare: 3.00, tripDistanceMiles: 5, platform: PlatformType.bolt), // £0.60/mile
+        settings,
+      );
+      expect(outcome.decision, JobDecision.rejected);
+    });
+
+    test('never fires for Uber — no counter-offer flow exists there', () {
+      final settings = DriverSettings(
+        rules: const RuleConfig(
+          minimumPoundsPerMile: ThresholdRule(enabled: true, value: 2.00),
+          counterOfferFareFloor: ThresholdRule(enabled: true, value: 3.50),
+        ),
+      );
+      final outcome = engine.evaluate(
+        _job(fare: 4.00, tripDistanceMiles: 5, platform: PlatformType.uber),
+        settings,
+      );
+      expect(outcome.decision, JobDecision.rejected);
+    });
+
+    test('disabled by default — an old settings object sees no behavior change', () {
+      final settings = DriverSettings(
+        rules: const RuleConfig(minimumPoundsPerMile: ThresholdRule(enabled: true, value: 2.00)),
+      );
+      final outcome = engine.evaluate(
+        _job(fare: 4.00, tripDistanceMiles: 5, platform: PlatformType.bolt),
+        settings,
+      );
+      expect(outcome.decision, JobDecision.rejected);
+    });
+  });
+
+  group('high-value job override (Rule 9, driver request)', () {
+    test('fare + rate both at/above the floors accepts immediately, bypassing another failing rule', () {
+      final settings = DriverSettings(
+        rules: const RuleConfig(
+          minimumPoundsPerMile: ThresholdRule(enabled: true, value: 2.00),
+          maximumPickupDistanceMiles: ThresholdRule(enabled: true, value: 3.0),
+          highValueJob: HighValueJobOverride(enabled: true, fareFloor: 15.0, acceptRateFloor: 1.50),
+        ),
+      );
+      final outcome = engine.evaluate(
+        _job(fare: 16, tripDistanceMiles: 8, pickupDistanceMiles: 50), // £2.00/mile, pickup would fail
+        settings,
+      );
+      expect(outcome.decision, JobDecision.accepted);
+    });
+
+    test('fare at/above floor but rate below acceptRateFloor counter-offers on Bolt', () {
+      final settings = DriverSettings(
+        rules: const RuleConfig(
+          minimumPoundsPerMile: ThresholdRule(enabled: true, value: 2.00),
+          highValueJob: HighValueJobOverride(enabled: true, fareFloor: 15.0, acceptRateFloor: 1.50),
+        ),
+      );
+      final outcome = engine.evaluate(
+        _job(fare: 16, tripDistanceMiles: 11.43, platform: PlatformType.bolt), // ≈£1.40/mile
+        settings,
+      );
+      expect(outcome.decision, JobDecision.counterOffered);
+    });
+
+    test('same below-floor case on Uber falls through to a normal reject, not a counter-offer', () {
+      final settings = DriverSettings(
+        rules: const RuleConfig(
+          minimumPoundsPerMile: ThresholdRule(enabled: true, value: 2.00),
+          highValueJob: HighValueJobOverride(enabled: true, fareFloor: 15.0, acceptRateFloor: 1.50),
+        ),
+      );
+      final outcome = engine.evaluate(
+        _job(fare: 16, tripDistanceMiles: 11.43, platform: PlatformType.uber), // ≈£1.40/mile
+        settings,
+      );
+      expect(outcome.decision, JobDecision.rejected);
+    });
+
+    test('a blocked destination postcode still rejects, even at a qualifying fare and rate', () {
+      final settings = DriverSettings(
+        rules: RuleConfig(
+          minimumPoundsPerMile: const ThresholdRule(enabled: true, value: 2.00),
+          highValueJob:
+              const HighValueJobOverride(enabled: true, fareFloor: 15.0, acceptRateFloor: 1.50),
+          postcodeBlocklist: const PostcodeBlocklistConfig(enabled: true, blockedPrefixes: ['LE4']),
+        ),
+      );
+      final job = TaxiJob(
+        id: 'test-job',
+        platform: PlatformType.bolt,
+        detectedAt: DateTime(2026, 1, 1),
+        decision: JobDecision.pending,
+        fare: 16,
+        tripDistanceMiles: 8,
+        destinationPostcode: 'LE4',
+      );
+      final outcome = engine.evaluate(job, settings);
+      expect(outcome.decision, JobDecision.rejected);
+    });
+
+    test('below the fare floor entirely is unaffected — normal rules apply', () {
+      final settings = DriverSettings(
+        rules: const RuleConfig(
+          minimumPoundsPerMile: ThresholdRule(enabled: true, value: 2.00),
+          highValueJob: HighValueJobOverride(enabled: true, fareFloor: 15.0, acceptRateFloor: 1.50),
+        ),
+      );
+      final outcome = engine.evaluate(_job(fare: 10, tripDistanceMiles: 5), settings); // £2.00/mile
+      expect(outcome.decision, JobDecision.accepted);
+    });
+  });
+
+  group('quiet-time relaxed minimum £/mile (Rule 10, driver request)', () {
+    test('during quiet time, a job at/above the relaxed floor is accepted', () {
+      final settings = DriverSettings(
+        rules: const RuleConfig(
+          minimumPoundsPerMile: ThresholdRule(enabled: true, value: 2.00),
+          quietTimeMinimumPoundsPerMile: ThresholdRule(enabled: true, value: 1.60),
+        ),
+      );
+      final outcome = engine.evaluate(
+        _job(fare: 8.50, tripDistanceMiles: 5), // £1.70/mile
+        settings,
+        isBusyTime: false,
+      );
+      expect(outcome.decision, JobDecision.accepted);
+    });
+
+    test('the identical job during busy time still uses the normal minimum and rejects', () {
+      final settings = DriverSettings(
+        rules: const RuleConfig(
+          minimumPoundsPerMile: ThresholdRule(enabled: true, value: 2.00),
+          quietTimeMinimumPoundsPerMile: ThresholdRule(enabled: true, value: 1.60),
+        ),
+      );
+      final outcome = engine.evaluate(
+        _job(fare: 8.50, tripDistanceMiles: 5), // £1.70/mile
+        settings,
+        isBusyTime: true,
+      );
+      expect(outcome.decision, JobDecision.rejected);
+    });
+
+    test('below even the relaxed floor still rejects during quiet time', () {
+      final settings = DriverSettings(
+        rules: const RuleConfig(
+          minimumPoundsPerMile: ThresholdRule(enabled: true, value: 2.00),
+          quietTimeMinimumPoundsPerMile: ThresholdRule(enabled: true, value: 1.60),
+        ),
+      );
+      final outcome = engine.evaluate(
+        _job(fare: 7.50, tripDistanceMiles: 5), // £1.50/mile
+        settings,
+        isBusyTime: false,
+      );
+      expect(outcome.decision, JobDecision.rejected);
+    });
+
+    test('disabled by default — isBusyTime has no effect on existing behavior', () {
+      final settings = DriverSettings(
+        rules: const RuleConfig(minimumPoundsPerMile: ThresholdRule(enabled: true, value: 2.00)),
+      );
+      final outcome = engine.evaluate(
+        _job(fare: 8.50, tripDistanceMiles: 5), // £1.70/mile
+        settings,
+        isBusyTime: false,
+      );
+      expect(outcome.decision, JobDecision.rejected);
     });
   });
 }

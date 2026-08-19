@@ -41,6 +41,40 @@ class PostcodeBlocklistConfig extends Equatable {
   List<Object?> get props => [enabled, blockedPrefixes];
 }
 
+/// "High-value job" override (spec: driver request) — at or above [fareFloor],
+/// a job that also clears [acceptRateFloor] £/mile is accepted immediately,
+/// bypassing every other threshold rule (pickup distance, trip distance,
+/// minimum fare, hourly rate) — but never the postcode blocklist, which the
+/// driver confirmed must still always apply regardless of fare. Below
+/// [acceptRateFloor] but still at/above [fareFloor], a Bolt job gets a
+/// counter-offer instead of a reject, same rescue mechanism as
+/// [RuleConfig.counterOfferFareFloor] but for higher-value jobs.
+class HighValueJobOverride extends Equatable {
+  const HighValueJobOverride({
+    this.enabled = false,
+    this.fareFloor = AppConstants.defaultHighValueJobFareFloor,
+    this.acceptRateFloor = AppConstants.defaultHighValueJobAcceptRateFloor,
+  });
+
+  final bool enabled;
+  final double fareFloor;
+  final double acceptRateFloor;
+
+  HighValueJobOverride copyWith({
+    bool? enabled,
+    double? fareFloor,
+    double? acceptRateFloor,
+  }) =>
+      HighValueJobOverride(
+        enabled: enabled ?? this.enabled,
+        fareFloor: fareFloor ?? this.fareFloor,
+        acceptRateFloor: acceptRateFloor ?? this.acceptRateFloor,
+      );
+
+  @override
+  List<Object?> get props => [enabled, fareFloor, acceptRateFloor];
+}
+
 /// The full set of configurable rules (spec section 6). Deliberately a plain
 /// data holder — evaluation logic lives in domain/rules, not here, so new
 /// rules can be added without widening this class's responsibilities.
@@ -58,6 +92,15 @@ class RuleConfig extends Equatable {
     this.counterOfferBandPercent = const ThresholdRule(
       enabled: false,
       value: AppConstants.defaultCounterOfferBandPercent,
+    ),
+    this.counterOfferFareFloor = const ThresholdRule(
+      enabled: false,
+      value: AppConstants.defaultCounterOfferFareFloor,
+    ),
+    this.highValueJob = const HighValueJobOverride(),
+    this.quietTimeMinimumPoundsPerMile = const ThresholdRule(
+      enabled: false,
+      value: AppConstants.defaultQuietTimeMinimumPoundsPerMile,
     ),
   });
 
@@ -87,6 +130,24 @@ class RuleConfig extends Equatable {
   /// to the normal reject, same as every other rule here.
   final ThresholdRule counterOfferBandPercent;
 
+  /// Rule 8 (Bolt-only) — a flat-fare alternative to [counterOfferBandPercent]:
+  /// a job whose total fare is at or above this amount gets a counter-offer
+  /// rather than an outright reject when it only fails on £/mile, regardless
+  /// of how that fare compares to the driver's own minimum rate. Independent
+  /// of [counterOfferBandPercent] — either one qualifying is enough to
+  /// trigger a counter-offer.
+  final ThresholdRule counterOfferFareFloor;
+
+  /// Rule 9 — see [HighValueJobOverride].
+  final HighValueJobOverride highValueJob;
+
+  /// Rule 10 — during quiet periods (8+ jobs detected in the last 5 minutes
+  /// counts as busy — see JobDecisionEngine.evaluate's isBusyTime parameter),
+  /// relax the effective minimum £/mile down to this value if it's lower
+  /// than [minimumPoundsPerMile] — never up. During busy periods,
+  /// [minimumPoundsPerMile] applies completely unchanged.
+  final ThresholdRule quietTimeMinimumPoundsPerMile;
+
   RuleConfig copyWith({
     ThresholdRule? minimumPoundsPerMile,
     ThresholdRule? maximumPickupDistanceMiles,
@@ -95,6 +156,9 @@ class RuleConfig extends Equatable {
     ThresholdRule? minimumHourlyRate,
     PostcodeBlocklistConfig? postcodeBlocklist,
     ThresholdRule? counterOfferBandPercent,
+    ThresholdRule? counterOfferFareFloor,
+    HighValueJobOverride? highValueJob,
+    ThresholdRule? quietTimeMinimumPoundsPerMile,
   }) {
     return RuleConfig(
       minimumPoundsPerMile: minimumPoundsPerMile ?? this.minimumPoundsPerMile,
@@ -105,6 +169,10 @@ class RuleConfig extends Equatable {
       minimumHourlyRate: minimumHourlyRate ?? this.minimumHourlyRate,
       postcodeBlocklist: postcodeBlocklist ?? this.postcodeBlocklist,
       counterOfferBandPercent: counterOfferBandPercent ?? this.counterOfferBandPercent,
+      counterOfferFareFloor: counterOfferFareFloor ?? this.counterOfferFareFloor,
+      highValueJob: highValueJob ?? this.highValueJob,
+      quietTimeMinimumPoundsPerMile:
+          quietTimeMinimumPoundsPerMile ?? this.quietTimeMinimumPoundsPerMile,
     );
   }
 
@@ -117,5 +185,8 @@ class RuleConfig extends Equatable {
         minimumHourlyRate,
         postcodeBlocklist,
         counterOfferBandPercent,
+        counterOfferFareFloor,
+        highValueJob,
+        quietTimeMinimumPoundsPerMile,
       ];
 }
