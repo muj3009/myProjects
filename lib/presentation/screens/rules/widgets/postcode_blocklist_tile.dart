@@ -82,7 +82,7 @@ class _PostcodeBlocklistTileState extends State<PostcodeBlocklistTile> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              RuleIcon(icon: Icons.block, active: config.enabled),
+              RuleIcon(icon: Icons.block, active: config.enabled, color: const Color(0xFFE5484D)),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(

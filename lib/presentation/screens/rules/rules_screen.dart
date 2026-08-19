@@ -60,6 +60,7 @@ class RulesScreen extends ConsumerWidget {
               icon: Icons.attach_money,
               rule: rules.minimumPoundsPerMile,
               emphasized: true,
+              color: const Color(0xFF4C6EF5),
               onChanged: (r) =>
                   updateRules((c) => c.copyWith(minimumPoundsPerMile: r)),
             ),
@@ -76,6 +77,7 @@ class RulesScreen extends ConsumerWidget {
                   unitSuffix: ' $distanceUnitLabel',
                   icon: Icons.social_distance,
                   rule: rules.maximumPickupDistanceMiles,
+                  color: const Color(0xFFA855F7),
                   onChanged: (r) => updateRules(
                       (c) => c.copyWith(maximumPickupDistanceMiles: r)),
                 ),
@@ -86,6 +88,7 @@ class RulesScreen extends ConsumerWidget {
                   unitPrefix: '£',
                   icon: Icons.payments_outlined,
                   rule: rules.minimumFare,
+                  color: const Color(0xFF2FA968),
                   onChanged: (r) => updateRules((c) => c.copyWith(minimumFare: r)),
                 ),
                 const _RowDivider(),
@@ -95,6 +98,7 @@ class RulesScreen extends ConsumerWidget {
                   unitSuffix: ' $distanceUnitLabel',
                   icon: Icons.route_outlined,
                   rule: rules.maximumTripDistanceMiles,
+                  color: const Color(0xFF14B8A6),
                   onChanged: (r) =>
                       updateRules((c) => c.copyWith(maximumTripDistanceMiles: r)),
                 ),
@@ -106,6 +110,7 @@ class RulesScreen extends ConsumerWidget {
                   unitSuffix: '/hour',
                   icon: Icons.schedule_outlined,
                   rule: rules.minimumHourlyRate,
+                  color: const Color(0xFFEC4899),
                   onChanged: (r) =>
                       updateRules((c) => c.copyWith(minimumHourlyRate: r)),
                 ),
@@ -122,6 +127,7 @@ class RulesScreen extends ConsumerWidget {
                   unitSuffix: '%',
                   icon: Icons.swap_horiz,
                   rule: rules.counterOfferBandPercent,
+                  color: const Color(0xFFD4A72C),
                   onChanged: (r) =>
                       updateRules((c) => c.copyWith(counterOfferBandPercent: r)),
                 ),
@@ -326,6 +332,14 @@ class _PlatformOverrideTile extends ConsumerWidget {
       icon: platform == PlatformType.uber
           ? Icons.directions_car_filled_outlined
           : Icons.electric_car_outlined,
+      // Uber's own near-black brand tone doesn't survive the muted/low-alpha
+      // "off" treatment — a very dark color at 14% alpha is just gray, the
+      // same as no color at all, so it looked identical to an uncolored
+      // row. Cyan instead, kept distinct from the other rule-row colors so
+      // all seven rows on this screen read as genuinely different.
+      color: platform == PlatformType.uber
+          ? const Color(0xFF06B6D4)
+          : const Color(0xFFF2994A),
       rule: override?.minimumPoundsPerMile ??
           const ThresholdRule(enabled: false, value: 2.00),
       onChanged: (r) {

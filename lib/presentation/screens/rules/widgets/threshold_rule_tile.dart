@@ -25,6 +25,7 @@ class ThresholdRuleTile extends StatefulWidget {
     this.unitSuffix = '',
     this.icon = Icons.tune,
     this.emphasized = false,
+    this.color,
   });
 
   final String title;
@@ -34,6 +35,12 @@ class ThresholdRuleTile extends StatefulWidget {
   final String unitPrefix;
   final String unitSuffix;
   final IconData icon;
+
+  /// Icon color when the rule is active — null falls back to the theme's
+  /// primary. Giving each rule its own color (rather than every active rule
+  /// sharing the same blue) is what actually makes a list of seven rows
+  /// scannable at a glance instead of visually uniform.
+  final Color? color;
 
   /// The one rule the driver actually cares about most (minimum £/mile) —
   /// bigger icon/title and the caller wraps it in a tinted "featured" card,
@@ -101,7 +108,12 @@ class _ThresholdRuleTileState extends State<ThresholdRuleTile> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              RuleIcon(icon: widget.icon, active: rule.enabled, large: widget.emphasized),
+              RuleIcon(
+                icon: widget.icon,
+                active: rule.enabled,
+                large: widget.emphasized,
+                color: widget.color,
+              ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -230,30 +242,45 @@ class _ValueBadge extends StatelessWidget {
 /// whichever rules are actually on. Public (not `_`-prefixed) so
 /// [PostcodeBlocklistTile] can reuse the exact same treatment.
 class RuleIcon extends StatelessWidget {
-  const RuleIcon({super.key, required this.icon, required this.active, this.large = false});
+  const RuleIcon({
+    super.key,
+    required this.icon,
+    required this.active,
+    this.large = false,
+    this.color,
+  });
 
   final IconData icon;
   final bool active;
   final bool large;
+
+  /// This rule's own identity color — null falls back to the theme's
+  /// primary blue. Most rules are off by default, so if color only showed
+  /// up once enabled, a driver opening this screen fresh would see a wall
+  /// of identical gray icons and never notice the palette at all; a muted
+  /// tint of the same color when off keeps every row visually distinct at
+  /// rest, while full saturation still marks which rules are actually on.
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final diameter = large ? 46.0 : 38.0;
     if (!active) {
+      final muted = color ?? scheme.onSurfaceVariant;
       return Container(
         width: diameter,
         height: diameter,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: scheme.onSurfaceVariant.withValues(alpha: 0.10),
+          color: muted.withValues(alpha: 0.14),
         ),
-        child: Icon(icon, size: diameter * 0.5, color: scheme.onSurfaceVariant.withValues(alpha: 0.85)),
+        child: Icon(icon, size: diameter * 0.5, color: muted.withValues(alpha: 0.75)),
       );
     }
     return TintedIconCircle(
       icon: icon,
-      color: scheme.primary,
+      color: color ?? scheme.primary,
       diameter: diameter,
       iconSize: diameter * 0.5,
     );
