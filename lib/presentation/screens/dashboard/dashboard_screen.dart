@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../application/controllers/automation_controller.dart';
@@ -7,6 +8,8 @@ import '../../../application/state/navigation_controller.dart';
 import '../../../application/state/settings_controller.dart';
 import '../../../application/state/statistics_controller.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../domain/entities/driver_settings.dart';
+import '../../../domain/entities/rule_config.dart';
 import '../../../domain/enums/platform_type.dart';
 import '../../widgets/decision_badge.dart';
 import '../../widgets/gradient_button.dart';
@@ -19,6 +22,15 @@ import '../simulation/simulation_screen.dart';
 
 /// Main screen (spec sections 4/31) — automation status, quick stats, and
 /// the two most important controls a driver needs: start and emergency stop.
+///
+/// Built around one real edge-to-edge hero zone rather than a card that
+/// merely *looks* like one floating on a flat scaffold — the previous
+/// version kept every element in individually-bordered white/gray cards, so
+/// no matter how each card was decorated the page still read as generic
+/// Material chrome. The hero's own gradient shifts from ink toward green
+/// when automation is active — the single boldest visual signal on the
+/// screen is now tied directly to the thing a driver actually glances down
+/// to check, not decoration for its own sake.
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
@@ -26,6 +38,7 @@ class DashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final automation = ref.watch(automationControllerProvider);
     final settings = ref.watch(settingsControllerProvider);
+    final controller = ref.read(automationControllerProvider.notifier);
     final stats = ref.watch(statisticsControllerProvider).statistics;
 
     ref.listen<int>(
@@ -37,83 +50,238 @@ class DashboardScreen extends ConsumerWidget {
       },
     );
 
-    return Scaffold(
-      // The app bar title already identifies the screen — a generic,
-      // unpersonalized "Good morning" underneath it repeated that without
-      // adding any information, so the automation status card (the thing a
-      // driver actually opens this screen to check) is now the first thing
-      // on the page instead of the third.
-      appBar: AppBar(title: Text(settings.appName), centerTitle: false),
-      // A soft ambient glow behind the top of the page instead of a flat
-      // scaffold background — sits behind the ListView (painted first in the
-      // Stack), showing through the gaps around and behind the hero card's
-      // rounded corners rather than a hard cut from the app bar's ink to a
-      // plain neutral background.
-      body: Stack(
-        children: [
-          Positioned(
-            top: -90,
-            right: -70,
-            child: Container(
-              width: 280,
-              height: 280,
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [Color(0x1A11141C), Colors.transparent],
-                ),
-              ),
-            ),
-          ),
-          ListView(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-            children: [
-              _AutomationStatusCard(automation: automation),
-              const SizedBox(height: 16),
-              if (automation.lastJob != null) ...[
-                _LastJobCard(automation: automation),
-                const SizedBox(height: 16),
-              ],
-              SectionHeader(
-                'TODAY',
-                trailing: _HeaderLink(
-                  label: 'Full breakdown',
-                  onTap: () => ref.read(rootNavigationIndexProvider.notifier).state = 2,
-                ),
-              ),
-              SectionCard(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    StatTile(
-                        label: 'Jobs seen',
-                        value: '${stats.jobsDetected}',
-                        icon: Icons.list_alt),
-                    StatTile(
-                      label: 'Accepted',
-                      value: '${stats.jobsAccepted}',
-                      color: StatusColors.accepted,
-                      icon: Icons.check_circle,
+    // The *effective* rule for whichever single platform is selected, not
+    // just the global default — a platform-specific override (Rules screen)
+    // can silently diverge from it. Showing the global rule here regardless
+    // let a disabled Uber-only override go completely unnoticed on a real
+    // device: the Dashboard kept saying "£2.00 Minimum/mile" while Uber jobs
+    // were actually being accepted with no £/mile check applied at all.
+    // "Both" platforms selected can't be collapsed into one number if they
+    // genuinely differ, so that case still shows the global rule.
+    final singlePlatform = switch (settings.platformSelection) {
+      PlatformSelection.uber => PlatformType.uber,
+      PlatformSelection.bolt => PlatformType.bolt,
+      PlatformSelection.both => null,
+    };
+    final minRule = singlePlatform != null
+        ? settings.rulesFor(singlePlatform).minimumPoundsPerMile
+        : settings.rules.minimumPoundsPerMile;
+
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light,
+      child: Scaffold(
+        body: Column(
+          children: [
+            _DashboardHero(automation: automation, settings: settings, minRule: minRule),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
+                children: [
+                  if (!automation.isSupported)
+                    OutlinedButton.icon(
+                      onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const SimulationScreen()),
+                      ),
+                      icon: const Icon(Icons.science_outlined),
+                      label: const Text('Open Simulation Mode'),
+                    )
+                  else if (automation.isActive)
+                    GradientButton(
+                      icon: Icons.stop_circle_outlined,
+                      label: 'STOP AUTOMATION',
+                      baseColor: StatusColors.rejected,
+                      onPressed: controller.stop,
+                    )
+                  else
+                    GradientButton(
+                      icon: Icons.play_circle_outline,
+                      label: 'START AUTOMATION',
+                      baseColor: StatusColors.accepted,
+                      onPressed: controller.start,
                     ),
-                    StatTile(
-                      label: 'Rejected',
-                      value: '${stats.jobsRejected}',
-                      color: StatusColors.rejected,
-                      icon: Icons.cancel,
-                    ),
-                    StatTile(
-                      label: 'Avg £/mile',
-                      value: '£${stats.averagePoundsPerMile.toStringAsFixed(2)}',
-                      icon: Icons.attach_money,
+                  if (automation.isSupported && !automation.isActive) ...[
+                    const SizedBox(height: 8),
+                    TextButton(
+                      onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const PermissionsScreen()),
+                      ),
+                      child: const Text('Check permissions / setup'),
                     ),
                   ],
+                  const SizedBox(height: 16),
+                  if (automation.lastJob != null) ...[
+                    _LastJobCard(automation: automation),
+                    const SizedBox(height: 16),
+                  ],
+                  SectionHeader(
+                    'TODAY',
+                    trailing: _HeaderLink(
+                      label: 'Full breakdown',
+                      onTap: () => ref.read(rootNavigationIndexProvider.notifier).state = 2,
+                    ),
+                  ),
+                  SectionCard(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        StatTile(
+                            label: 'Jobs seen',
+                            value: '${stats.jobsDetected}',
+                            icon: Icons.list_alt),
+                        StatTile(
+                          label: 'Accepted',
+                          value: '${stats.jobsAccepted}',
+                          color: StatusColors.accepted,
+                          icon: Icons.check_circle,
+                        ),
+                        StatTile(
+                          label: 'Rejected',
+                          value: '${stats.jobsRejected}',
+                          color: StatusColors.rejected,
+                          icon: Icons.cancel,
+                        ),
+                        StatTile(
+                          label: 'Avg £/mile',
+                          value: '£${stats.averagePoundsPerMile.toStringAsFixed(2)}',
+                          icon: Icons.attach_money,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  if (!automation.isSupported)
+                    _IosNotSupportedCard(reason: automation.unsupportedReason!),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// The full-bleed status header — replaces both the old AppBar and the
+/// bordered "hero card" with one continuous colored zone that extends
+/// behind the status bar. Rounded only at the bottom, so it reads as a
+/// distinct region the rest of the page sits below rather than a card
+/// floating on the scaffold.
+class _DashboardHero extends StatelessWidget {
+  const _DashboardHero({required this.automation, required this.settings, required this.minRule});
+
+  final AutomationState automation;
+  final DriverSettings settings;
+  final ThresholdRule minRule;
+
+  @override
+  Widget build(BuildContext context) {
+    final isActive = automation.isActive;
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.fromLTRB(20, MediaQuery.of(context).padding.top + 16, 20, 26),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isActive
+              ? [AppTheme.ink, Color.lerp(AppTheme.ink, StatusColors.accepted, 0.55)!]
+              : [AppTheme.ink, Color.lerp(AppTheme.ink, AppTheme.accentBlue, 0.4)!],
+        ),
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(32),
+          bottomRight: Radius.circular(32),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            settings.appName,
+            style: const TextStyle(
+                color: Colors.white70, fontWeight: FontWeight.w700, fontSize: 14, letterSpacing: 0.3),
+          ),
+          const SizedBox(height: 18),
+          Row(
+            children: [
+              _StatusDot(active: isActive, color: isActive ? StatusColors.accepted : Colors.white70),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  isActive ? 'AUTOMATION ACTIVE' : 'AUTOMATION OFF',
+                  style: const TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.w800, fontSize: 24, letterSpacing: 0.2),
                 ),
               ),
-              const SizedBox(height: 16),
-              if (!automation.isSupported)
-                _IosNotSupportedCard(reason: automation.unsupportedReason!),
+              TintedIconCircle(
+                icon: Icons.bolt,
+                color: isActive ? StatusColors.accepted : AppTheme.accentBlue,
+                diameter: 46,
+                iconSize: 24,
+              ),
             ],
           ),
+          const SizedBox(height: 6),
+          Text(
+            automation.statusMessage,
+            style: const TextStyle(color: Colors.white70, fontSize: 15),
+          ),
+          const SizedBox(height: 22),
+          Row(
+            children: [
+              Expanded(
+                child: _HeroStatChip(
+                  icon: Icons.speed,
+                  label: 'Minimum / mile',
+                  value: minRule.enabled ? '£${minRule.value.toStringAsFixed(2)}' : 'Off',
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _HeroStatChip(
+                  icon: Icons.local_taxi_outlined,
+                  label: 'Platform',
+                  value: settings.platformSelection.name,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A "glass" stat panel for use on the dark hero — deliberately hardcoded
+/// white/white70 text rather than pulling from the ambient [Theme], because
+/// this panel is always dark regardless of the app's light/dark theme mode
+/// (matching the app bar's own fixed-ink precedent), unlike [StatTile] which
+/// assumes a light card background.
+class _HeroStatChip extends StatelessWidget {
+  const _HeroStatChip({required this.icon, required this.label, required this.value});
+
+  final IconData icon;
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.16)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: Colors.white70, size: 18),
+          const SizedBox(height: 8),
+          Text(value,
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 19)),
+          const SizedBox(height: 2),
+          Text(label, style: const TextStyle(color: Colors.white70, fontSize: 12)),
         ],
       ),
     );
@@ -145,193 +313,6 @@ class _HeaderLink extends StatelessWidget {
                 style: TextStyle(color: primary, fontWeight: FontWeight.w700, fontSize: 13)),
             Icon(Icons.chevron_right, color: primary, size: 16),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _AutomationStatusCard extends ConsumerWidget {
-  const _AutomationStatusCard({required this.automation});
-
-  final AutomationState automation;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(settingsControllerProvider);
-    final controller = ref.read(automationControllerProvider.notifier);
-    // The *effective* rule for whichever single platform is selected, not
-    // just the global default — a platform-specific override (Rules screen)
-    // can silently diverge from it. Showing the global rule here regardless
-    // let a disabled Uber-only override go completely unnoticed on a real
-    // device: the Dashboard kept saying "£2.00 Minimum/mile" while Uber jobs
-    // were actually being accepted with no £/mile check applied at all.
-    // "Both" platforms selected can't be collapsed into one number if they
-    // genuinely differ, so that case still shows the global rule.
-    final singlePlatform = switch (settings.platformSelection) {
-      PlatformSelection.uber => PlatformType.uber,
-      PlatformSelection.bolt => PlatformType.bolt,
-      PlatformSelection.both => null,
-    };
-    final minRule = singlePlatform != null
-        ? settings.rulesFor(singlePlatform).minimumPoundsPerMile
-        : settings.rules.minimumPoundsPerMile;
-
-    final statusColor = automation.isActive
-        ? StatusColors.accepted
-        : Theme.of(context).colorScheme.onSurfaceVariant;
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: [
-          BoxShadow(
-            color: (automation.isActive ? StatusColors.accepted : Colors.black)
-                .withValues(
-              alpha: automation.isActive ? 0.16 : 0.05,
-            ),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Card(
-        clipBehavior: Clip.antiAlias,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(28),
-          side: BorderSide(
-            color: automation.isActive
-                ? StatusColors.accepted.withValues(alpha: 0.4)
-                : Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
-            width: automation.isActive ? 1.5 : 1.5,
-          ),
-        ),
-        child: Container(
-          // A richer, saturated wash on *both* states (not just when active)
-          // is what keeps the card from looking flat/unfinished the moment
-          // automation is off — the color just shifts from green to the
-          // brand blue instead of disappearing entirely. Boosted to roughly
-          // the same visual weight as the active state's wash (was ~half as
-          // strong) — "off" was reading as an unstyled fallback rather than
-          // a deliberate second state of the same card.
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: automation.isActive
-                  ? [
-                      StatusColors.accepted.withValues(alpha: 0.22),
-                      StatusColors.accepted.withValues(alpha: 0.04),
-                    ]
-                  : [
-                      Theme.of(context).colorScheme.primary.withValues(alpha: 0.16),
-                      Theme.of(context).colorScheme.primary.withValues(alpha: 0.03),
-                    ],
-            ),
-          ),
-          padding: const EdgeInsets.all(22),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Row(
-                      children: [
-                        _StatusDot(active: automation.isActive, color: statusColor),
-                        const SizedBox(width: 10),
-                        Flexible(
-                          child: Text(
-                            automation.isActive
-                                ? 'AUTOMATION ACTIVE'
-                                : 'AUTOMATION OFF',
-                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                  color: automation.isActive
-                                      ? StatusColors.accepted
-                                      : null,
-                                  letterSpacing: 0.3,
-                                ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  TintedIconCircle(
-                    icon: Icons.bolt,
-                    color: automation.isActive
-                        ? StatusColors.accepted
-                        : Theme.of(context).colorScheme.primary,
-                    diameter: 44,
-                    iconSize: 24,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Text(
-                automation.statusMessage,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: _StatChip(
-                      child: StatTile(
-                        label: 'Minimum / mile',
-                        value: minRule.enabled
-                            ? '£${minRule.value.toStringAsFixed(2)}'
-                            : 'Off',
-                        icon: Icons.speed,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _StatChip(
-                      child: StatTile(
-                        label: 'Platform',
-                        value: settings.platformSelection.name,
-                        icon: Icons.local_taxi_outlined,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              if (!automation.isSupported)
-                OutlinedButton.icon(
-                  onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const SimulationScreen()),
-                  ),
-                  icon: const Icon(Icons.science_outlined),
-                  label: const Text('Open Simulation Mode'),
-                )
-              else if (automation.isActive)
-                GradientButton(
-                  icon: Icons.stop_circle_outlined,
-                  label: 'STOP AUTOMATION',
-                  baseColor: StatusColors.rejected,
-                  onPressed: controller.stop,
-                )
-              else
-                GradientButton(
-                  icon: Icons.play_circle_outline,
-                  label: 'START AUTOMATION',
-                  baseColor: StatusColors.accepted,
-                  onPressed: controller.start,
-                ),
-              if (automation.isSupported && !automation.isActive) ...[
-                const SizedBox(height: 8),
-                TextButton(
-                  onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                        builder: (_) => const PermissionsScreen()),
-                  ),
-                  child: const Text('Check permissions / setup'),
-                ),
-              ],
-            ],
-          ),
         ),
       ),
     );
@@ -412,29 +393,6 @@ class _IosNotSupportedCard extends StatelessWidget {
           Expanded(child: Text(reason)),
         ],
       ),
-    );
-  }
-}
-
-/// Wraps a [StatTile] in a translucent rounded chip — on its own, a
-/// StatTile floating directly on the hero card's colored gradient wash had
-/// nothing separating it from the background, especially once that wash
-/// was strengthened for the "off" state. A soft surface-tinted panel gives
-/// each mini-stat a real edge without competing with the card's own border.
-class _StatChip extends StatelessWidget {
-  const _StatChip({required this.child});
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.55),
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: child,
     );
   }
 }
