@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../application/controllers/automation_controller.dart';
 import '../../../application/controllers/automation_state.dart';
+import '../../../application/state/navigation_controller.dart';
 import '../../../application/state/settings_controller.dart';
 import '../../../application/state/statistics_controller.dart';
 import '../../../core/theme/app_theme.dart';
@@ -20,13 +21,6 @@ import '../simulation/simulation_screen.dart';
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
-  String _greeting() {
-    final hour = DateTime.now().hour;
-    if (hour < 12) return 'Good morning';
-    if (hour < 18) return 'Good afternoon';
-    return 'Good evening';
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final automation = ref.watch(automationControllerProvider);
@@ -43,19 +37,28 @@ class DashboardScreen extends ConsumerWidget {
     );
 
     return Scaffold(
+      // The app bar title already identifies the screen — a generic,
+      // unpersonalized "Good morning" underneath it repeated that without
+      // adding any information, so the automation status card (the thing a
+      // driver actually opens this screen to check) is now the first thing
+      // on the page instead of the third.
       appBar: AppBar(title: Text(settings.appName), centerTitle: false),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
         children: [
-          Text(_greeting(), style: Theme.of(context).textTheme.headlineLarge),
-          const SizedBox(height: 20),
           _AutomationStatusCard(automation: automation),
           const SizedBox(height: 16),
           if (automation.lastJob != null) ...[
             _LastJobCard(automation: automation),
             const SizedBox(height: 16),
           ],
-          const SectionHeader('TODAY'),
+          SectionHeader(
+            'TODAY',
+            trailing: _HeaderLink(
+              label: 'Full breakdown',
+              onTap: () => ref.read(rootNavigationIndexProvider.notifier).state = 2,
+            ),
+          ),
           SectionCard(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -88,6 +91,37 @@ class DashboardScreen extends ConsumerWidget {
           if (!automation.isSupported)
             _IosNotSupportedCard(reason: automation.unsupportedReason!),
         ],
+      ),
+    );
+  }
+}
+
+/// A small "go look at the full picture" link — used to send the driver from
+/// a Dashboard summary to the screen that actually owns that data (Jobs
+/// History, Statistics) instead of the Dashboard trying to also be those
+/// screens. Two call sites; kept as one widget so both read identically.
+class _HeaderLink extends StatelessWidget {
+  const _HeaderLink({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+    return InkWell(
+      borderRadius: BorderRadius.circular(12),
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(label,
+                style: TextStyle(color: primary, fontWeight: FontWeight.w700, fontSize: 13)),
+            Icon(Icons.chevron_right, color: primary, size: 16),
+          ],
+        ),
       ),
     );
   }
@@ -289,45 +323,58 @@ class _AutomationStatusCard extends ConsumerWidget {
   }
 }
 
-class _LastJobCard extends StatelessWidget {
+class _LastJobCard extends ConsumerWidget {
   const _LastJobCard({required this.automation});
 
   final AutomationState automation;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final job = automation.lastJob!;
     return SectionCard(
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'LAST JOB',
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      letterSpacing: 1.0,
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'LAST JOB',
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          letterSpacing: 1.0,
+                        ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    job.fare != null
+                        ? '£${job.fare!.toStringAsFixed(2)}'
+                        : 'Fare unknown',
+                    style: Theme.of(context).textTheme.headlineMedium,
+                  ),
+                  if (job.tripDistanceMiles != null)
+                    Text(
+                      '${job.tripDistanceMiles!.toStringAsFixed(1)} miles'
+                      '${job.poundsPerMile != null ? ' · £${job.poundsPerMile!.toStringAsFixed(2)}/mile' : ''}',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant),
                     ),
+                ],
               ),
-              const SizedBox(height: 6),
-              Text(
-                job.fare != null
-                    ? '£${job.fare!.toStringAsFixed(2)}'
-                    : 'Fare unknown',
-                style: Theme.of(context).textTheme.headlineMedium,
-              ),
-              if (job.tripDistanceMiles != null)
-                Text(
-                  '${job.tripDistanceMiles!.toStringAsFixed(1)} miles'
-                  '${job.poundsPerMile != null ? ' · £${job.poundsPerMile!.toStringAsFixed(2)}/mile' : ''}',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant),
-                ),
+              DecisionBadge(decision: job.decision),
             ],
           ),
-          DecisionBadge(decision: job.decision),
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerRight,
+            child: _HeaderLink(
+              label: 'View all jobs',
+              onTap: () => ref.read(rootNavigationIndexProvider.notifier).state = 1,
+            ),
+          ),
         ],
       ),
     );

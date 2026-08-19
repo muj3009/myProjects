@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../application/state/navigation_controller.dart';
 import '../screens/dashboard/dashboard_screen.dart';
 import '../screens/jobs/job_history_screen.dart';
 import '../screens/rules/rules_screen.dart';
@@ -9,15 +11,8 @@ import '../screens/statistics/statistics_screen.dart';
 /// Top-level navigation shell (spec section 30): Dashboard, Jobs,
 /// Statistics, Rules, Settings. Kept as a simple IndexedStack so switching
 /// tabs never reloads a screen's state or triggers extra animation.
-class RootNavigation extends StatefulWidget {
+class RootNavigation extends ConsumerWidget {
   const RootNavigation({super.key});
-
-  @override
-  State<RootNavigation> createState() => _RootNavigationState();
-}
-
-class _RootNavigationState extends State<RootNavigation> {
-  int _index = 0;
 
   static const _screens = [
     DashboardScreen(),
@@ -28,9 +23,10 @@ class _RootNavigationState extends State<RootNavigation> {
   ];
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final index = ref.watch(rootNavigationIndexProvider);
     return Scaffold(
-      body: SafeArea(child: IndexedStack(index: _index, children: _screens)),
+      body: SafeArea(child: IndexedStack(index: index, children: _screens)),
       // A pill-shaped bar floating above the screen edge (margin + rounded
       // corners + shadow) instead of a bar flush with the bottom reads as
       // deliberately designed rather than default Material chrome.
@@ -51,8 +47,9 @@ class _RootNavigationState extends State<RootNavigation> {
           child: ClipRRect(
             borderRadius: BorderRadius.circular(32),
             child: NavigationBar(
-              selectedIndex: _index,
-              onDestinationSelected: (i) => setState(() => _index = i),
+              selectedIndex: index,
+              onDestinationSelected: (i) =>
+                  ref.read(rootNavigationIndexProvider.notifier).state = i,
               destinations: const [
                 NavigationDestination(icon: Icon(Icons.dashboard_outlined), selectedIcon: Icon(Icons.dashboard), label: 'Dashboard'),
                 NavigationDestination(icon: Icon(Icons.history_outlined), selectedIcon: Icon(Icons.history), label: 'Jobs'),
