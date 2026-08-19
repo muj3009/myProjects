@@ -169,26 +169,6 @@ class AppTheme {
           borderSide: BorderSide(color: colorScheme.error, width: 2),
         ),
       ),
-      navigationBarTheme: NavigationBarThemeData(
-        height: 68,
-        backgroundColor: isDark ? const Color(0xFF141519) : Colors.white,
-        surfaceTintColor: Colors.transparent,
-        indicatorColor: colorScheme.primary.withValues(alpha: 0.14),
-        indicatorShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        labelTextStyle: WidgetStateProperty.resolveWith(
-          (states) => TextStyle(
-            fontFamily: fontFamily,
-            fontSize: 12,
-            fontWeight: states.contains(WidgetState.selected) ? FontWeight.w700 : FontWeight.w500,
-            color: states.contains(WidgetState.selected) ? colorScheme.primary : colorScheme.onSurfaceVariant,
-          ),
-        ),
-        iconTheme: WidgetStateProperty.resolveWith(
-          (states) => IconThemeData(
-            color: states.contains(WidgetState.selected) ? colorScheme.primary : colorScheme.onSurfaceVariant,
-          ),
-        ),
-      ),
       // A single cohesive hue when on (green thumb + green-tinted track,
       // matching "on = active/go" everywhere else in the app) rather than
       // the M3 default of a green thumb sitting on the *accent blue* track —
