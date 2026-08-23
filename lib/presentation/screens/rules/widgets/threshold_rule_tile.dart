@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -73,23 +75,52 @@ class _ThresholdRuleTileState extends State<ThresholdRuleTile> {
 
   @override
   void dispose() {
+    // Flush a pending edit rather than silently drop it — a driver who types
+    // a value then immediately switches screens shouldn't lose that last
+    // keystroke just because the debounce timer hadn't fired yet.
+    if (_debounce?.isActive ?? false) {
+      _debounce!.cancel();
+      _commitNow(_controller.text);
+    }
     _controller.dispose();
     super.dispose();
   }
 
   static const double _sensibleMaximum = 1000.0;
+  static const _debounceDelay = Duration(milliseconds: 400);
 
+  Timer? _debounce;
+
+  // Every call used to flow straight through to widget.onChanged on every
+  // keystroke, which the caller (RulesScreen -> SettingsController.update)
+  // turns into a full-screen Riverpod rebuild *and* a JSON-encode + SQLite
+  // write of the entire settings object — real, visible typing lag once the
+  // rule set grew past a handful of fields. Validation still runs
+  // immediately (cheap, local setState only); only the expensive commit is
+  // debounced until typing actually pauses.
   void _commit(String raw) {
+    if (!_validate(raw)) return;
+    _debounce?.cancel();
+    _debounce = Timer(_debounceDelay, () => _commitNow(raw));
+  }
+
+  bool _validate(String raw) {
     final parsed = double.tryParse(raw);
     if (parsed == null || parsed <= 0) {
       setState(() => _error = 'Enter a value greater than 0');
-      return;
+      return false;
     }
     if (parsed > _sensibleMaximum) {
       setState(() => _error = 'Value is too large');
-      return;
+      return false;
     }
     setState(() => _error = null);
+    return true;
+  }
+
+  void _commitNow(String raw) {
+    final parsed = double.tryParse(raw);
+    if (parsed == null || parsed <= 0 || parsed > _sensibleMaximum) return;
     widget.onChanged(widget.rule.copyWith(value: parsed));
   }
 

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -48,20 +50,47 @@ class _HighValueJobTileState extends State<HighValueJobTile> {
     }
   }
 
+  static const _debounceDelay = Duration(milliseconds: 400);
+  Timer? _fareDebounce;
+  Timer? _rateDebounce;
+
   @override
   void dispose() {
+    // Flush any pending edit rather than silently drop it — see the
+    // matching comment in ThresholdRuleTile.dispose.
+    if (_fareDebounce?.isActive ?? false) {
+      _fareDebounce!.cancel();
+      _commitFareNow(_fareController.text);
+    }
+    if (_rateDebounce?.isActive ?? false) {
+      _rateDebounce!.cancel();
+      _commitRateNow(_rateController.text);
+    }
     _fareController.dispose();
     _rateController.dispose();
     super.dispose();
   }
 
+  // Debounced for the same reason as ThresholdRuleTile._commit — every
+  // keystroke used to flow straight through to a full settings rebuild plus
+  // a SQLite write of the entire settings object.
   void _commitFare(String raw) {
+    _fareDebounce?.cancel();
+    _fareDebounce = Timer(_debounceDelay, () => _commitFareNow(raw));
+  }
+
+  void _commitRate(String raw) {
+    _rateDebounce?.cancel();
+    _rateDebounce = Timer(_debounceDelay, () => _commitRateNow(raw));
+  }
+
+  void _commitFareNow(String raw) {
     final parsed = double.tryParse(raw);
     if (parsed == null || parsed <= 0) return;
     widget.onChanged(widget.config.copyWith(fareFloor: parsed));
   }
 
-  void _commitRate(String raw) {
+  void _commitRateNow(String raw) {
     final parsed = double.tryParse(raw);
     if (parsed == null || parsed <= 0) return;
     widget.onChanged(widget.config.copyWith(acceptRateFloor: parsed));
