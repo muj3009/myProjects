@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rm -rf build/app/intermediates/assets/debug/mergeDebugAssets)",
+      "Bash(flutter build *)"
+    ]
+  }
+}

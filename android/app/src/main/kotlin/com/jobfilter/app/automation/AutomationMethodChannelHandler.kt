@@ -153,14 +153,6 @@ class AutomationMethodChannelHandler(
                 }
                 result.success(null)
             }
-            "showOnlineBubble" -> {
-                JobAccessibilityService.instance?.showOnlineBubble()
-                result.success(null)
-            }
-            "hideOnlineBubble" -> {
-                JobAccessibilityService.instance?.hideOnlineBubble()
-                result.success(null)
-            }
             else -> result.notImplemented()
         }
     }

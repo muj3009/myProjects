@@ -72,7 +72,8 @@ class DashboardScreen extends ConsumerWidget {
       child: Scaffold(
         body: Column(
           children: [
-            _DashboardHero(automation: automation, settings: settings, minRule: minRule),
+            _DashboardHero(
+                automation: automation, settings: settings, minRule: minRule),
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
@@ -80,7 +81,8 @@ class DashboardScreen extends ConsumerWidget {
                   if (!automation.isSupported)
                     OutlinedButton.icon(
                       onPressed: () => Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const SimulationScreen()),
+                        MaterialPageRoute(
+                            builder: (_) => const SimulationScreen()),
                       ),
                       icon: const Icon(Icons.science_outlined),
                       label: const Text('Open Simulation Mode'),
@@ -103,7 +105,8 @@ class DashboardScreen extends ConsumerWidget {
                     const SizedBox(height: 8),
                     TextButton(
                       onPressed: () => Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const PermissionsScreen()),
+                        MaterialPageRoute(
+                            builder: (_) => const PermissionsScreen()),
                       ),
                       child: const Text('Check permissions / setup'),
                     ),
@@ -117,33 +120,43 @@ class DashboardScreen extends ConsumerWidget {
                     'TODAY',
                     trailing: _HeaderLink(
                       label: 'Full breakdown',
-                      onTap: () => ref.read(rootNavigationIndexProvider.notifier).state = 2,
+                      onTap: () => ref
+                          .read(rootNavigationIndexProvider.notifier)
+                          .state = 2,
                     ),
                   ),
                   SectionCard(
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        StatTile(
-                            label: 'Jobs seen',
-                            value: '${stats.jobsDetected}',
-                            icon: Icons.list_alt),
-                        StatTile(
-                          label: 'Accepted',
-                          value: '${stats.jobsAccepted}',
-                          color: StatusColors.accepted,
-                          icon: Icons.check_circle,
+                        Expanded(
+                          child: StatTile(
+                              label: 'Jobs seen',
+                              value: '${stats.jobsDetected}',
+                              icon: Icons.list_alt),
                         ),
-                        StatTile(
-                          label: 'Rejected',
-                          value: '${stats.jobsRejected}',
-                          color: StatusColors.rejected,
-                          icon: Icons.cancel,
+                        Expanded(
+                          child: StatTile(
+                            label: 'Accepted',
+                            value: '${stats.jobsAccepted}',
+                            color: StatusColors.accepted,
+                            icon: Icons.check_circle,
+                          ),
                         ),
-                        StatTile(
-                          label: 'Avg £/mile',
-                          value: '£${stats.averagePoundsPerMile.toStringAsFixed(2)}',
-                          icon: Icons.attach_money,
+                        Expanded(
+                          child: StatTile(
+                            label: 'Rejected',
+                            value: '${stats.jobsRejected}',
+                            color: StatusColors.rejected,
+                            icon: Icons.cancel,
+                          ),
+                        ),
+                        Expanded(
+                          child: StatTile(
+                            label: 'Avg £/mile',
+                            value:
+                                '£${stats.averagePoundsPerMile.toStringAsFixed(2)}',
+                            icon: Icons.attach_money,
+                          ),
                         ),
                       ],
                     ),
@@ -167,7 +180,10 @@ class DashboardScreen extends ConsumerWidget {
 /// distinct region the rest of the page sits below rather than a card
 /// floating on the scaffold.
 class _DashboardHero extends StatelessWidget {
-  const _DashboardHero({required this.automation, required this.settings, required this.minRule});
+  const _DashboardHero(
+      {required this.automation,
+      required this.settings,
+      required this.minRule});
 
   final AutomationState automation;
   final DriverSettings settings;
@@ -178,14 +194,21 @@ class _DashboardHero extends StatelessWidget {
     final isActive = automation.isActive;
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.fromLTRB(20, MediaQuery.of(context).padding.top + 16, 20, 26),
+      padding: EdgeInsets.fromLTRB(
+          20, MediaQuery.of(context).padding.top + 16, 20, 26),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: isActive
-              ? [AppTheme.ink, Color.lerp(AppTheme.ink, StatusColors.accepted, 0.55)!]
-              : [AppTheme.ink, Color.lerp(AppTheme.ink, AppTheme.accentBlue, 0.4)!],
+              ? [
+                  AppTheme.ink,
+                  Color.lerp(AppTheme.ink, StatusColors.accepted, 0.55)!
+                ]
+              : [
+                  AppTheme.ink,
+                  Color.lerp(AppTheme.ink, AppTheme.accentBlue, 0.4)!
+                ],
         ),
         borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(32),
@@ -198,18 +221,26 @@ class _DashboardHero extends StatelessWidget {
           Text(
             settings.appName,
             style: const TextStyle(
-                color: Colors.white70, fontWeight: FontWeight.w700, fontSize: 14, letterSpacing: 0.3),
+                color: Colors.white70,
+                fontWeight: FontWeight.w700,
+                fontSize: 14,
+                letterSpacing: 0.3),
           ),
           const SizedBox(height: 18),
           Row(
             children: [
-              _StatusDot(active: isActive, color: isActive ? StatusColors.accepted : Colors.white70),
+              _StatusDot(
+                  active: isActive,
+                  color: isActive ? StatusColors.accepted : Colors.white70),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   isActive ? 'AUTOMATION ACTIVE' : 'AUTOMATION OFF',
                   style: const TextStyle(
-                      color: Colors.white, fontWeight: FontWeight.w800, fontSize: 24, letterSpacing: 0.2),
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 24,
+                      letterSpacing: 0.2),
                 ),
               ),
               TintedIconCircle(
@@ -232,7 +263,9 @@ class _DashboardHero extends StatelessWidget {
                 child: _HeroStatChip(
                   icon: Icons.speed,
                   label: 'Minimum / mile',
-                  value: minRule.enabled ? '£${minRule.value.toStringAsFixed(2)}' : 'Off',
+                  value: minRule.enabled
+                      ? '£${minRule.value.toStringAsFixed(2)}'
+                      : 'Off',
                 ),
               ),
               const SizedBox(width: 10),
@@ -257,7 +290,8 @@ class _DashboardHero extends StatelessWidget {
 /// (matching the app bar's own fixed-ink precedent), unlike [StatTile] which
 /// assumes a light card background.
 class _HeroStatChip extends StatelessWidget {
-  const _HeroStatChip({required this.icon, required this.label, required this.value});
+  const _HeroStatChip(
+      {required this.icon, required this.label, required this.value});
 
   final IconData icon;
   final String label;
@@ -279,9 +313,13 @@ class _HeroStatChip extends StatelessWidget {
           Icon(icon, color: Colors.white70, size: 18),
           const SizedBox(height: 8),
           Text(value,
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 19)),
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 19)),
           const SizedBox(height: 2),
-          Text(label, style: const TextStyle(color: Colors.white70, fontSize: 12)),
+          Text(label,
+              style: const TextStyle(color: Colors.white70, fontSize: 12)),
         ],
       ),
     );
@@ -310,7 +348,8 @@ class _HeaderLink extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(label,
-                style: TextStyle(color: primary, fontWeight: FontWeight.w700, fontSize: 13)),
+                style: TextStyle(
+                    color: primary, fontWeight: FontWeight.w700, fontSize: 13)),
             Icon(Icons.chevron_right, color: primary, size: 16),
           ],
         ),
@@ -356,7 +395,8 @@ class _LastJobCard extends ConsumerWidget {
                       '${job.tripDistanceMiles!.toStringAsFixed(1)} miles'
                       '${job.poundsPerMile != null ? ' · £${job.poundsPerMile!.toStringAsFixed(2)}/mile' : ''}',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant),
+                          color:
+                              Theme.of(context).colorScheme.onSurfaceVariant),
                     ),
                 ],
               ),
@@ -368,7 +408,8 @@ class _LastJobCard extends ConsumerWidget {
             alignment: Alignment.centerRight,
             child: _HeaderLink(
               label: 'View all jobs',
-              onTap: () => ref.read(rootNavigationIndexProvider.notifier).state = 1,
+              onTap: () =>
+                  ref.read(rootNavigationIndexProvider.notifier).state = 1,
             ),
           ),
         ],

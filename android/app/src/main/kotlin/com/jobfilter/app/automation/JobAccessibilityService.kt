@@ -1548,136 +1548,7 @@ class JobAccessibilityService : AccessibilityService() {
         }
     }
 
-    private var onlineBubbleView: android.view.View? = null
-
-    /**
-     * Persistent floating "online" indicator — driver request: "just like
-     * the circle icon Uber/Bolt show when you're online", draggable and
-     * visible over any app while automation is active. Shown/hidden from
-     * Dart alongside [AutomationController.start]/`stop`, not tied to this
-     * service's own lifecycle (the service stays bound the whole time
-     * regardless of whether automation itself is on). Deliberately
-     * `TYPE_APPLICATION_OVERLAY` (needs `SYSTEM_ALERT_WINDOW`, already
-     * granted for [addBalExemptionOverlay]'s sake) rather than
-     * [showDecisionOverlay]'s `TYPE_ACCESSIBILITY_OVERLAY` — this one needs
-     * to be genuinely touchable/draggable, which the accessibility overlay
-     * type doesn't support.
-     */
-    fun showOnlineBubble() {
-        mainExecutor.execute {
-            if (onlineBubbleView != null) return@execute
-            try {
-                val windowManager = getSystemService(Context.WINDOW_SERVICE) as android.view.WindowManager
-                val density = resources.displayMetrics.density
-                // Larger than the original 48dp text badge — a real device
-                // showed the artwork (see ic_bubble.png, pre-composited by
-                // tool/generate_icons.dart at 70% of this canvas) needed a
-                // bigger circle to have visible white padding around it
-                // rather than looking cramped against the circle's edge.
-                val sizePx = (64 * density).toInt()
-                val view = android.widget.ImageView(this).apply {
-                    setImageResource(R.drawable.ic_bubble)
-                    scaleType = android.widget.ImageView.ScaleType.CENTER_INSIDE
-                    background = android.graphics.drawable.GradientDrawable().apply {
-                        shape = android.graphics.drawable.GradientDrawable.OVAL
-                        // White — matches the app icon's own white
-                        // background (driver request), not the earlier
-                        // green "online" badge color.
-                        setColor(android.graphics.Color.WHITE)
-                        setStroke((1 * density).toInt(), 0xFFDDDDDD.toInt())
-                    }
-                    elevation = 8f
-                }
-                val params = android.view.WindowManager.LayoutParams(
-                    sizePx,
-                    sizePx,
-                    android.view.WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-                    android.view.WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
-                    android.graphics.PixelFormat.TRANSLUCENT
-                ).apply {
-                    gravity = android.view.Gravity.TOP or android.view.Gravity.START
-                    x = resources.displayMetrics.widthPixels - sizePx - (16 * density).toInt()
-                    y = (160 * density).toInt()
-                }
-
-                // Standard chat-head drag pattern: remember where the touch
-                // and the window both started, then move the window by
-                // exactly the touch's own delta on every ACTION_MOVE. A tap
-                // (no meaningful movement between DOWN and UP) opens
-                // JobFilter itself instead — a real user touch on our own
-                // overlay, unlike [launchBoltApp]'s background trigger, so
-                // none of that function's Background Activity Launch
-                // workarounds are needed here at all.
-                var initialX = 0
-                var initialY = 0
-                var initialTouchX = 0f
-                var initialTouchY = 0f
-                var dragged = false
-                val tapSlopPx = 8 * density
-                view.setOnTouchListener { _, event ->
-                    when (event.action) {
-                        android.view.MotionEvent.ACTION_DOWN -> {
-                            initialX = params.x
-                            initialY = params.y
-                            initialTouchX = event.rawX
-                            initialTouchY = event.rawY
-                            dragged = false
-                            true
-                        }
-                        android.view.MotionEvent.ACTION_MOVE -> {
-                            val dx = event.rawX - initialTouchX
-                            val dy = event.rawY - initialTouchY
-                            if (kotlin.math.abs(dx) > tapSlopPx || kotlin.math.abs(dy) > tapSlopPx) {
-                                dragged = true
-                            }
-                            params.x = initialX + dx.toInt()
-                            params.y = initialY + dy.toInt()
-                            try {
-                                windowManager.updateViewLayout(view, params)
-                            } catch (e: Exception) {
-                                // Bubble may have just been removed (automation
-                                // stopped mid-drag) — nothing to do.
-                            }
-                            true
-                        }
-                        android.view.MotionEvent.ACTION_UP -> {
-                            if (!dragged) openJobFilterApp()
-                            true
-                        }
-                        else -> true
-                    }
-                }
-
-                windowManager.addView(view, params)
-                onlineBubbleView = view
-            } catch (e: Exception) {
-                android.util.Log.d("JobFilterVision", "showOnlineBubble: failed to add view: $e")
-            }
-        }
-    }
-
-    private fun openJobFilterApp() {
-        try {
-            val intent = packageManager.getLaunchIntentForPackage(packageName) ?: return
-            intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
-            startActivity(intent)
-        } catch (e: Exception) {
-            android.util.Log.d("JobFilterVision", "openJobFilterApp: failed: $e")
-        }
-    }
-
-    fun hideOnlineBubble() {
-        mainExecutor.execute {
-            val view = onlineBubbleView ?: return@execute
-            try {
-                val windowManager = getSystemService(Context.WINDOW_SERVICE) as android.view.WindowManager
-                windowManager.removeView(view)
-            } catch (e: Exception) {
-                android.util.Log.d("JobFilterVision", "hideOnlineBubble: failed to remove view: $e")
-            }
-            onlineBubbleView = null
-        }
-    }
+    
 
     private var balExemptionOverlayView: android.view.View? = null
 
@@ -1736,6 +1607,7 @@ class JobAccessibilityService : AccessibilityService() {
         balExemptionOverlayView = null
     }
 
+
     /**
      * Called by [BoltJobNotificationListenerService] instead of firing
      * Bolt's own `fullScreenIntent`/`contentIntent` PendingIntent directly —
@@ -1769,7 +1641,6 @@ class JobAccessibilityService : AccessibilityService() {
         super.onDestroy()
         pollHandler.removeCallbacks(pollRunnable)
         hideDecisionOverlay()
-        hideOnlineBubble()
         removeBalExemptionOverlay()
         instance = null
     }

@@ -140,7 +140,6 @@ class AutomationController extends StateNotifier<AutomationState> {
     }
 
     await _channel.startForegroundMonitoring();
-    await _channel.showOnlineBubble();
     await _ref.read(settingsControllerProvider.notifier).setAutomationEnabled(true);
 
     _subscription = _channel.detectedTextEvents().listen(
@@ -176,7 +175,6 @@ class AutomationController extends StateNotifier<AutomationState> {
     _uberPollTimer?.cancel();
     _uberPollTimer = null;
     await _channel.stopForegroundMonitoring();
-    await _channel.hideOnlineBubble();
     await _ref.read(settingsControllerProvider.notifier).setAutomationEnabled(false);
 
     state = state.copyWith(isActive: false, statusMessage: 'Automation is off');
