@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,13 +10,12 @@ import '../../../domain/enums/platform_type.dart';
 import '../../widgets/hero_header.dart';
 import '../../widgets/section_card.dart';
 import '../../widgets/tinted_icon_circle.dart';
-import '../debug/debug_screen.dart';
 import '../permissions/permissions_screen.dart';
 import '../simulation/simulation_screen.dart';
 
 /// Driver Settings (spec section 5) plus the app-wide preferences (name,
 /// platform selection, distance unit) and links to the guided permissions
-/// setup, Simulation Mode, and the debug screen (debug builds only).
+/// setup, Simulation Mode.
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
@@ -28,6 +26,29 @@ class SettingsScreen extends ConsumerWidget {
     final settings = ref.watch(settingsControllerProvider);
     final controller = ref.read(settingsControllerProvider.notifier);
     final minRule = settings.rules.minimumPoundsPerMile;
+
+    Color _colorForPlatform(PlatformSelection p) => switch (p) {
+      PlatformSelection.uber => const Color(0xFFD4A72C),
+      PlatformSelection.bolt => const Color(0xFFF2994A),
+      PlatformSelection.both => const Color(0xFF4C6EF5),
+    };
+
+    IconData _iconForPlatform(PlatformSelection p) => switch (p) {
+      PlatformSelection.uber => Icons.directions_car_filled_outlined,
+      PlatformSelection.bolt => Icons.electric_car_outlined,
+      PlatformSelection.both => Icons.apps,
+    };
+
+    String _labelForPlatform(PlatformSelection p) => switch (p) {
+      PlatformSelection.uber => 'Uber',
+      PlatformSelection.bolt => 'Bolt',
+      PlatformSelection.both => 'Both',
+    };
+
+    String _labelForDistance(DistanceUnit d) => switch (d) {
+      DistanceUnit.miles => 'Miles',
+      DistanceUnit.kilometres => 'Kilometres',
+    };
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
@@ -47,12 +68,8 @@ class SettingsScreen extends ConsumerWidget {
                   const SizedBox(height: 2),
                   Text(
                     '£${minRule.value.toStringAsFixed(2)}/mile · '
-                    '${switch (settings.platformSelection) {
-                      PlatformSelection.uber => 'Uber',
-                      PlatformSelection.bolt => 'Bolt',
-                      PlatformSelection.both => 'Both',
-                    }} · '
-                    '${settings.distanceUnit == DistanceUnit.miles ? 'Mi' : 'Km'}',
+                    '${_labelForPlatform(settings.platformSelection)} · '
+                    '${_labelForDistance(settings.distanceUnit)}',
                     style: const TextStyle(color: Colors.white70, fontSize: 11),
                   ),
                 ],
@@ -111,29 +128,56 @@ class SettingsScreen extends ConsumerWidget {
           const SizedBox(height: 6),
           Text('Platform', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 2),
-          SegmentedButton<PlatformSelection>(
-            showSelectedIcon: false,
-            segments: const [
-              ButtonSegment(value: PlatformSelection.uber, label: Text('Uber')),
-              ButtonSegment(value: PlatformSelection.bolt, label: Text('Bolt')),
-              ButtonSegment(value: PlatformSelection.both, label: Text('Both')),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              for (final platform in [
+                PlatformSelection.uber,
+                PlatformSelection.bolt,
+                PlatformSelection.both
+              ]) ...[
+                ChoiceChip(
+                  avatar: TintedIconCircle(
+                    icon: _iconForPlatform(platform),
+                    color: _colorForPlatform(platform),
+                    diameter: 18,
+                    iconSize: 10,
+                  ),
+                  showCheckmark: false,
+                  label: Text(_labelForPlatform(platform)),
+                  selected: settings.platformSelection == platform,
+                  selectedColor: _colorForPlatform(platform).withValues(alpha: 0.18),
+                  onSelected: (_) => controller.update(
+                    (s) => s.copyWith(platformSelection: platform),
+                  ),
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+              ],
             ],
-            selected: {settings.platformSelection},
-            onSelectionChanged: (s) =>
-                controller.update((st) => st.copyWith(platformSelection: s.first)),
           ),
           const SizedBox(height: 6),
           Text('Distance', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 2),
-          SegmentedButton<DistanceUnit>(
-            showSelectedIcon: false,
-            segments: const [
-              ButtonSegment(value: DistanceUnit.miles, label: Text('Mi')),
-              ButtonSegment(value: DistanceUnit.kilometres, label: Text('Km')),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              for (final unit in [
+                DistanceUnit.miles,
+                DistanceUnit.kilometres,
+              ]) ...[
+                ChoiceChip(
+                  label: Text(_labelForDistance(unit)),
+                  selected: settings.distanceUnit == unit,
+                  selectedColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.18),
+                  onSelected: (_) => controller.update(
+                    (s) => s.copyWith(distanceUnit: unit),
+                  ),
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+              ],
             ],
-            selected: {settings.distanceUnit},
-            onSelectionChanged: (s) =>
-                controller.update((st) => st.copyWith(distanceUnit: s.first)),
           ),
           const SizedBox(height: 6),
           Text('App name', style: Theme.of(context).textTheme.titleMedium),
@@ -175,15 +219,6 @@ class SettingsScreen extends ConsumerWidget {
                   onTap: () => Navigator.of(context).push(
                     MaterialPageRoute(builder: (_) => const SimulationScreen())),
                 ),
-                if (kDebugMode) ...[
-                  const Divider(height: 1, indent: 44),
-                  _SettingsLinkTile(
-                    icon: Icons.bug_report_outlined,
-                    title: 'Developer debug screen',
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const DebugScreen())),
-                  ),
-                ],
               ],
             ),
           ),

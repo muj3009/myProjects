@@ -11,19 +11,21 @@ class GradientButton extends StatelessWidget {
     required this.label,
     required this.onPressed,
     required this.baseColor,
+    this.borderRadius = 16,
   });
 
   final IconData icon;
   final String label;
   final VoidCallback onPressed;
   final Color baseColor;
+  final double borderRadius;
 
   @override
   Widget build(BuildContext context) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(100),
+        borderRadius: BorderRadius.circular(borderRadius),
         onTap: onPressed,
         child: Ink(
           height: 52,
@@ -33,7 +35,7 @@ class GradientButton extends StatelessWidget {
               end: Alignment.bottomCenter,
               colors: [Color.lerp(baseColor, Colors.white, 0.16)!, baseColor],
             ),
-            borderRadius: BorderRadius.circular(100),
+            borderRadius: BorderRadius.circular(borderRadius),
             boxShadow: [
               BoxShadow(
                 color: baseColor.withValues(alpha: 0.4),

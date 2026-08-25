@@ -98,7 +98,8 @@ class DashboardScreen extends ConsumerWidget {
                     GradientButton(
                       icon: Icons.play_circle_outline,
                       label: 'START AUTOMATION',
-                      baseColor: StatusColors.accepted,
+                      baseColor: const Color(0xFF5DC122),
+                      borderRadius: 16,
                       onPressed: controller.start,
                     ),
                   if (automation.isSupported && !automation.isActive) ...[
