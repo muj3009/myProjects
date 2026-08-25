@@ -172,26 +172,26 @@ class JobDecisionEngine {
         }
       }
 
-      // Driver request: a flat-fare alternative to the percentage-based
-      // rescue above — a Bolt job worth at least this much still gets a
-      // counter-offer even if it's nowhere near the driver's minimum
-      // £/mile, since the total money can still make it worth trying for
-      // more rather than rejecting outright. Independent of the band-percent
-      // rescue above — either one qualifying is enough.
+      // Driver request: a low-fare alternative to the percentage-based
+      // rescue above — a Bolt job below this fare is so cheap that it's
+      // always worth an automatic maximum counter-offer rather than an
+      // outright reject, regardless of how far under the driver's minimum
+      // £/mile it is. Independent of the band-percent rescue above — either
+      // one qualifying is enough.
       if (job.platform == PlatformType.bolt &&
-          ruleConfig.counterOfferFareFloor.enabled &&
+          ruleConfig.lowFareCounterOfferThreshold.enabled &&
           failed.length == 1 &&
           failed.first.ruleName == const MinimumPoundsPerMileRule().name &&
           job.fare != null &&
-          job.fare! >= ruleConfig.counterOfferFareFloor.value) {
+          job.fare! < ruleConfig.lowFareCounterOfferThreshold.value) {
         return DecisionOutcome(
           decision: JobDecision.counterOffered,
           evaluations: evaluations,
           reason: _bulletList([
             failed.first.detail,
-            'The fare is still £${job.fare!.toStringAsFixed(2)} (at or above your '
-                '£${ruleConfig.counterOfferFareFloor.value.toStringAsFixed(2)} counter-offer floor), so '
-                'JobFilter sent a counter-offer instead of rejecting it',
+            'The fare is only £${job.fare!.toStringAsFixed(2)} (below your '
+                '£${ruleConfig.lowFareCounterOfferThreshold.value.toStringAsFixed(2)} low-fare threshold), so '
+                'JobFilter sent your maximum counter-offer instead of rejecting it',
           ]),
           poundsPerMile: poundsPerMile,
           estimatedHourlyRate: hourlyRate,

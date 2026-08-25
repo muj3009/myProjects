@@ -134,14 +134,14 @@ class RulesScreen extends ConsumerWidget {
                 ),
                 const _RowDivider(),
                 ThresholdRuleTile(
-                  title: 'Counter-offer worthwhile fares (Bolt)',
-                  subtitle: 'Fare at or above this still gets a counter, not a reject.',
+                  title: 'Auto counter-offer low fares (Bolt)',
+                  subtitle: 'Fare below this always gets your max counter-offer, not a reject.',
                   unitPrefix: '£',
                   icon: Icons.local_offer_outlined,
-                  rule: rules.counterOfferFareFloor,
+                  rule: rules.lowFareCounterOfferThreshold,
                   color: const Color(0xFF84CC16),
                   onChanged: (r) =>
-                      updateRules((c) => c.copyWith(counterOfferFareFloor: r)),
+                      updateRules((c) => c.copyWith(lowFareCounterOfferThreshold: r)),
                 ),
                 const _RowDivider(),
                 HighValueJobTile(
@@ -304,8 +304,8 @@ class _RulesHeroBody extends StatelessWidget {
             '${rules.postcodeBlocklist.blockedPrefixes.length == 1 ? '' : 's'} blocked',
       if (rules.counterOfferBandPercent.enabled)
         'Counter-offer at ${rules.counterOfferBandPercent.value.toStringAsFixed(0)}%',
-      if (rules.counterOfferFareFloor.enabled)
-        'Counter-offer £${rules.counterOfferFareFloor.value.toStringAsFixed(2)}+ fares',
+      if (rules.lowFareCounterOfferThreshold.enabled)
+        'Auto counter-offer under £${rules.lowFareCounterOfferThreshold.value.toStringAsFixed(2)}',
       if (rules.highValueJob.enabled)
         '£${rules.highValueJob.fareFloor.toStringAsFixed(0)}+ at £${rules.highValueJob.acceptRateFloor.toStringAsFixed(2)}/mi auto-accepts',
       if (rules.quietTimeMinimumPoundsPerMile.enabled)

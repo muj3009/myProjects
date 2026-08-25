@@ -56,7 +56,8 @@ class DriverSettingsMapper {
         'minimumHourlyRate': _thresholdToJson(config.minimumHourlyRate),
         'postcodeBlocklist': _postcodeBlocklistToJson(config.postcodeBlocklist),
         'counterOfferBandPercent': _thresholdToJson(config.counterOfferBandPercent),
-        'counterOfferFareFloor': _thresholdToJson(config.counterOfferFareFloor),
+        'lowFareCounterOfferThreshold':
+            _thresholdToJson(config.lowFareCounterOfferThreshold),
         'highValueJob': _highValueJobToJson(config.highValueJob),
         'quietTimeMinimumPoundsPerMile': _thresholdToJson(config.quietTimeMinimumPoundsPerMile),
       };
@@ -77,8 +78,8 @@ class DriverSettingsMapper {
           _postcodeBlocklistFromJson(json['postcodeBlocklist'], defaults.postcodeBlocklist),
       counterOfferBandPercent: _thresholdFromJson(
           json['counterOfferBandPercent'], defaults.counterOfferBandPercent),
-      counterOfferFareFloor: _thresholdFromJson(
-          json['counterOfferFareFloor'], defaults.counterOfferFareFloor),
+      lowFareCounterOfferThreshold: _thresholdFromJson(
+          json['lowFareCounterOfferThreshold'], defaults.lowFareCounterOfferThreshold),
       highValueJob: _highValueJobFromJson(json['highValueJob'], defaults.highValueJob),
       quietTimeMinimumPoundsPerMile: _thresholdFromJson(
           json['quietTimeMinimumPoundsPerMile'], defaults.quietTimeMinimumPoundsPerMile),

@@ -32,10 +32,11 @@ class AppConstants {
   /// in the Rules screen, matching the product spec's own 85% example.
   static const double defaultCounterOfferBandPercent = 85.0;
 
-  /// Default value for [RuleConfig.counterOfferFareFloor] — driver request:
-  /// a job worth £3.50 or more gets a counter-offer rather than an outright
-  /// reject when it only fails on £/mile.
-  static const double defaultCounterOfferFareFloor = 3.50;
+  /// Default value for [RuleConfig.lowFareCounterOfferThreshold] — driver
+  /// request: a Bolt job below this fare is so cheap that it's always worth
+  /// trying for more rather than rejecting outright, so it gets the maximum
+  /// counter-offer instead.
+  static const double defaultLowFareCounterOfferThreshold = 4.0;
 
   /// Defaults for [RuleConfig.highValueJob] — driver request: a £15+ job at
   /// £1.50+/mile is accepted immediately, bypassing every other rule except

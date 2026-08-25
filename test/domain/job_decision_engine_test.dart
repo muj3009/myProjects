@@ -202,30 +202,30 @@ void main() {
     });
   });
 
-  group('counter-offer flat fare floor (Rule 8, driver request)', () {
-    test('Bolt job below minimum £/mile but at/above the fare floor is counter-offered', () {
+  group('low-fare auto counter-offer (Rule 8, driver request)', () {
+    test('Bolt job below minimum £/mile and below the low-fare threshold is counter-offered', () {
       final settings = DriverSettings(
         rules: const RuleConfig(
           minimumPoundsPerMile: ThresholdRule(enabled: true, value: 2.00),
-          counterOfferFareFloor: ThresholdRule(enabled: true, value: 3.50),
+          lowFareCounterOfferThreshold: ThresholdRule(enabled: true, value: 4.00),
         ),
       );
       final outcome = engine.evaluate(
-        _job(fare: 4.00, tripDistanceMiles: 5, platform: PlatformType.bolt), // £0.80/mile
+        _job(fare: 3.00, tripDistanceMiles: 5, platform: PlatformType.bolt), // £0.60/mile
         settings,
       );
       expect(outcome.decision, JobDecision.counterOffered);
     });
 
-    test('below the fare floor still rejects outright', () {
+    test('at/above the low-fare threshold still rejects outright', () {
       final settings = DriverSettings(
         rules: const RuleConfig(
           minimumPoundsPerMile: ThresholdRule(enabled: true, value: 2.00),
-          counterOfferFareFloor: ThresholdRule(enabled: true, value: 3.50),
+          lowFareCounterOfferThreshold: ThresholdRule(enabled: true, value: 4.00),
         ),
       );
       final outcome = engine.evaluate(
-        _job(fare: 3.00, tripDistanceMiles: 5, platform: PlatformType.bolt), // £0.60/mile
+        _job(fare: 4.00, tripDistanceMiles: 5, platform: PlatformType.bolt), // £0.80/mile
         settings,
       );
       expect(outcome.decision, JobDecision.rejected);
@@ -235,11 +235,11 @@ void main() {
       final settings = DriverSettings(
         rules: const RuleConfig(
           minimumPoundsPerMile: ThresholdRule(enabled: true, value: 2.00),
-          counterOfferFareFloor: ThresholdRule(enabled: true, value: 3.50),
+          lowFareCounterOfferThreshold: ThresholdRule(enabled: true, value: 4.00),
         ),
       );
       final outcome = engine.evaluate(
-        _job(fare: 4.00, tripDistanceMiles: 5, platform: PlatformType.uber),
+        _job(fare: 3.00, tripDistanceMiles: 5, platform: PlatformType.uber),
         settings,
       );
       expect(outcome.decision, JobDecision.rejected);
@@ -250,7 +250,7 @@ void main() {
         rules: const RuleConfig(minimumPoundsPerMile: ThresholdRule(enabled: true, value: 2.00)),
       );
       final outcome = engine.evaluate(
-        _job(fare: 4.00, tripDistanceMiles: 5, platform: PlatformType.bolt),
+        _job(fare: 3.00, tripDistanceMiles: 5, platform: PlatformType.bolt),
         settings,
       );
       expect(outcome.decision, JobDecision.rejected);

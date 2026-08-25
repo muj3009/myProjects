@@ -48,7 +48,7 @@ class PostcodeBlocklistConfig extends Equatable {
 /// driver confirmed must still always apply regardless of fare. Below
 /// [acceptRateFloor] but still at/above [fareFloor], a Bolt job gets a
 /// counter-offer instead of a reject, same rescue mechanism as
-/// [RuleConfig.counterOfferFareFloor] but for higher-value jobs.
+/// [RuleConfig.lowFareCounterOfferThreshold] but for higher-value jobs.
 class HighValueJobOverride extends Equatable {
   const HighValueJobOverride({
     this.enabled = false,
@@ -93,9 +93,9 @@ class RuleConfig extends Equatable {
       enabled: false,
       value: AppConstants.defaultCounterOfferBandPercent,
     ),
-    this.counterOfferFareFloor = const ThresholdRule(
+    this.lowFareCounterOfferThreshold = const ThresholdRule(
       enabled: false,
-      value: AppConstants.defaultCounterOfferFareFloor,
+      value: AppConstants.defaultLowFareCounterOfferThreshold,
     ),
     this.highValueJob = const HighValueJobOverride(),
     this.quietTimeMinimumPoundsPerMile = const ThresholdRule(
@@ -130,13 +130,13 @@ class RuleConfig extends Equatable {
   /// to the normal reject, same as every other rule here.
   final ThresholdRule counterOfferBandPercent;
 
-  /// Rule 8 (Bolt-only) — a flat-fare alternative to [counterOfferBandPercent]:
-  /// a job whose total fare is at or above this amount gets a counter-offer
-  /// rather than an outright reject when it only fails on £/mile, regardless
-  /// of how that fare compares to the driver's own minimum rate. Independent
-  /// of [counterOfferBandPercent] — either one qualifying is enough to
-  /// trigger a counter-offer.
-  final ThresholdRule counterOfferFareFloor;
+  /// Rule 8 (Bolt-only) — a job whose total fare is BELOW this amount is so
+  /// low that it's always worth an automatic maximum counter-offer rather
+  /// than an outright reject when it only fails on £/mile, regardless of how
+  /// far under the driver's minimum rate it is. Independent of
+  /// [counterOfferBandPercent] — either one qualifying is enough to trigger
+  /// a counter-offer.
+  final ThresholdRule lowFareCounterOfferThreshold;
 
   /// Rule 9 — see [HighValueJobOverride].
   final HighValueJobOverride highValueJob;
@@ -156,7 +156,7 @@ class RuleConfig extends Equatable {
     ThresholdRule? minimumHourlyRate,
     PostcodeBlocklistConfig? postcodeBlocklist,
     ThresholdRule? counterOfferBandPercent,
-    ThresholdRule? counterOfferFareFloor,
+    ThresholdRule? lowFareCounterOfferThreshold,
     HighValueJobOverride? highValueJob,
     ThresholdRule? quietTimeMinimumPoundsPerMile,
   }) {
@@ -169,7 +169,8 @@ class RuleConfig extends Equatable {
       minimumHourlyRate: minimumHourlyRate ?? this.minimumHourlyRate,
       postcodeBlocklist: postcodeBlocklist ?? this.postcodeBlocklist,
       counterOfferBandPercent: counterOfferBandPercent ?? this.counterOfferBandPercent,
-      counterOfferFareFloor: counterOfferFareFloor ?? this.counterOfferFareFloor,
+      lowFareCounterOfferThreshold:
+          lowFareCounterOfferThreshold ?? this.lowFareCounterOfferThreshold,
       highValueJob: highValueJob ?? this.highValueJob,
       quietTimeMinimumPoundsPerMile:
           quietTimeMinimumPoundsPerMile ?? this.quietTimeMinimumPoundsPerMile,
@@ -185,7 +186,7 @@ class RuleConfig extends Equatable {
         minimumHourlyRate,
         postcodeBlocklist,
         counterOfferBandPercent,
-        counterOfferFareFloor,
+        lowFareCounterOfferThreshold,
         highValueJob,
         quietTimeMinimumPoundsPerMile,
       ];
