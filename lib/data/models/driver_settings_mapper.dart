@@ -90,6 +90,7 @@ class DriverSettingsMapper {
         'enabled': override.enabled,
         'fareFloor': override.fareFloor,
         'acceptRateFloor': override.acceptRateFloor,
+        'counterOfferRateFloor': override.counterOfferRateFloor,
       };
 
   static HighValueJobOverride _highValueJobFromJson(
@@ -102,6 +103,8 @@ class DriverSettingsMapper {
       enabled: map['enabled'] as bool? ?? fallback.enabled,
       fareFloor: (map['fareFloor'] as num?)?.toDouble() ?? fallback.fareFloor,
       acceptRateFloor: (map['acceptRateFloor'] as num?)?.toDouble() ?? fallback.acceptRateFloor,
+      counterOfferRateFloor:
+          (map['counterOfferRateFloor'] as num?)?.toDouble() ?? fallback.counterOfferRateFloor,
     );
   }
 

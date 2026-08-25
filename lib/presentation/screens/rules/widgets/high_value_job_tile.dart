@@ -27,6 +27,7 @@ class HighValueJobTile extends StatefulWidget {
 class _HighValueJobTileState extends State<HighValueJobTile> {
   late final TextEditingController _fareController;
   late final TextEditingController _rateController;
+  late final TextEditingController _counterOfferRateController;
 
   static const _color = Color(0xFF4338CA);
 
@@ -35,6 +36,8 @@ class _HighValueJobTileState extends State<HighValueJobTile> {
     super.initState();
     _fareController = TextEditingController(text: widget.config.fareFloor.toStringAsFixed(2));
     _rateController = TextEditingController(text: widget.config.acceptRateFloor.toStringAsFixed(2));
+    _counterOfferRateController =
+        TextEditingController(text: widget.config.counterOfferRateFloor.toStringAsFixed(2));
   }
 
   @override
@@ -48,11 +51,16 @@ class _HighValueJobTileState extends State<HighValueJobTile> {
         !_rateController.selection.isValid) {
       _rateController.text = widget.config.acceptRateFloor.toStringAsFixed(2);
     }
+    if (oldWidget.config.counterOfferRateFloor != widget.config.counterOfferRateFloor &&
+        !_counterOfferRateController.selection.isValid) {
+      _counterOfferRateController.text = widget.config.counterOfferRateFloor.toStringAsFixed(2);
+    }
   }
 
   static const _debounceDelay = Duration(milliseconds: 400);
   Timer? _fareDebounce;
   Timer? _rateDebounce;
+  Timer? _counterOfferRateDebounce;
 
   @override
   void dispose() {
@@ -66,8 +74,13 @@ class _HighValueJobTileState extends State<HighValueJobTile> {
       _rateDebounce!.cancel();
       _commitRateNow(_rateController.text);
     }
+    if (_counterOfferRateDebounce?.isActive ?? false) {
+      _counterOfferRateDebounce!.cancel();
+      _commitCounterOfferRateNow(_counterOfferRateController.text);
+    }
     _fareController.dispose();
     _rateController.dispose();
+    _counterOfferRateController.dispose();
     super.dispose();
   }
 
@@ -84,6 +97,11 @@ class _HighValueJobTileState extends State<HighValueJobTile> {
     _rateDebounce = Timer(_debounceDelay, () => _commitRateNow(raw));
   }
 
+  void _commitCounterOfferRate(String raw) {
+    _counterOfferRateDebounce?.cancel();
+    _counterOfferRateDebounce = Timer(_debounceDelay, () => _commitCounterOfferRateNow(raw));
+  }
+
   void _commitFareNow(String raw) {
     final parsed = double.tryParse(raw);
     if (parsed == null || parsed <= 0) return;
@@ -94,6 +112,12 @@ class _HighValueJobTileState extends State<HighValueJobTile> {
     final parsed = double.tryParse(raw);
     if (parsed == null || parsed <= 0) return;
     widget.onChanged(widget.config.copyWith(acceptRateFloor: parsed));
+  }
+
+  void _commitCounterOfferRateNow(String raw) {
+    final parsed = double.tryParse(raw);
+    if (parsed == null || parsed <= 0) return;
+    widget.onChanged(widget.config.copyWith(counterOfferRateFloor: parsed));
   }
 
   @override
@@ -124,7 +148,8 @@ class _HighValueJobTileState extends State<HighValueJobTile> {
                     ),
                     const SizedBox(height: 2),
                     const ScrollableSubtitle(
-                      'Accept immediately above both floors — ignores your other rules (except the blocklist).',
+                      'Accept immediately above both floors, counter-offer in the band below — ignores your '
+                      'other rules (except the blocklist).',
                     ),
                   ],
                 ),
@@ -138,7 +163,8 @@ class _HighValueJobTileState extends State<HighValueJobTile> {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    '£${config.fareFloor.toStringAsFixed(0)}+ · £${config.acceptRateFloor.toStringAsFixed(2)}/mi',
+                    '£${config.fareFloor.toStringAsFixed(0)}+ · £${config.acceptRateFloor.toStringAsFixed(2)}/mi '
+                    '· ctr £${config.counterOfferRateFloor.toStringAsFixed(2)}+',
                     style: const TextStyle(color: _color, fontWeight: FontWeight.w800, fontSize: 12),
                   ),
                 ),
@@ -157,39 +183,67 @@ class _HighValueJobTileState extends State<HighValueJobTile> {
             child: config.enabled
                 ? Padding(
                     padding: const EdgeInsets.only(top: 10, left: 52),
-                    child: Row(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(
-                          child: TextField(
-                            controller: _fareController,
-                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                            inputFormatters: [
-                              FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))
-                            ],
-                            decoration: const InputDecoration(
-                              isDense: true,
-                              prefixText: '£',
-                              labelText: 'Fare ≥',
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                controller: _fareController,
+                                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))
+                                ],
+                                decoration: const InputDecoration(
+                                  isDense: true,
+                                  prefixText: '£',
+                                  labelText: 'Fare ≥',
+                                ),
+                                onChanged: _commitFare,
+                              ),
                             ),
-                            onChanged: _commitFare,
-                          ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: TextField(
+                                controller: _rateController,
+                                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))
+                                ],
+                                decoration: const InputDecoration(
+                                  isDense: true,
+                                  prefixText: '£',
+                                  suffixText: '/mi',
+                                  labelText: 'Accept ≥',
+                                ),
+                                onChanged: _commitRate,
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: TextField(
-                            controller: _rateController,
-                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                            inputFormatters: [
-                              FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))
-                            ],
-                            decoration: const InputDecoration(
-                              isDense: true,
-                              prefixText: '£',
-                              suffixText: '/mi',
-                              labelText: 'Rate ≥',
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                controller: _counterOfferRateController,
+                                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))
+                                ],
+                                decoration: const InputDecoration(
+                                  isDense: true,
+                                  prefixText: '£',
+                                  suffixText: '/mi',
+                                  labelText: 'Counter-offer ≥',
+                                ),
+                                onChanged: _commitCounterOfferRate,
+                              ),
                             ),
-                            onChanged: _commitRate,
-                          ),
+                            const SizedBox(width: 10),
+                            const Expanded(child: SizedBox.shrink()),
+                          ],
                         ),
                       ],
                     ),

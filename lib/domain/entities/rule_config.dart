@@ -45,34 +45,38 @@ class PostcodeBlocklistConfig extends Equatable {
 /// a job that also clears [acceptRateFloor] £/mile is accepted immediately,
 /// bypassing every other threshold rule (pickup distance, trip distance,
 /// minimum fare, hourly rate) — but never the postcode blocklist, which the
-/// driver confirmed must still always apply regardless of fare. Below
-/// [acceptRateFloor] but still at/above [fareFloor], a Bolt job gets a
-/// counter-offer instead of a reject, same rescue mechanism as
-/// [RuleConfig.lowFareCounterOfferThreshold] but for higher-value jobs.
+/// driver confirmed must still always apply regardless of fare. Still at/above
+/// [fareFloor] but below [acceptRateFloor], a Bolt job gets a counter-offer
+/// instead of a reject as long as its rate is at/above [counterOfferRateFloor]
+/// — below that, this override does nothing and normal rules apply.
 class HighValueJobOverride extends Equatable {
   const HighValueJobOverride({
     this.enabled = false,
     this.fareFloor = AppConstants.defaultHighValueJobFareFloor,
     this.acceptRateFloor = AppConstants.defaultHighValueJobAcceptRateFloor,
+    this.counterOfferRateFloor = AppConstants.defaultHighValueJobCounterOfferRateFloor,
   });
 
   final bool enabled;
   final double fareFloor;
   final double acceptRateFloor;
+  final double counterOfferRateFloor;
 
   HighValueJobOverride copyWith({
     bool? enabled,
     double? fareFloor,
     double? acceptRateFloor,
+    double? counterOfferRateFloor,
   }) =>
       HighValueJobOverride(
         enabled: enabled ?? this.enabled,
         fareFloor: fareFloor ?? this.fareFloor,
         acceptRateFloor: acceptRateFloor ?? this.acceptRateFloor,
+        counterOfferRateFloor: counterOfferRateFloor ?? this.counterOfferRateFloor,
       );
 
   @override
-  List<Object?> get props => [enabled, fareFloor, acceptRateFloor];
+  List<Object?> get props => [enabled, fareFloor, acceptRateFloor, counterOfferRateFloor];
 }
 
 /// The full set of configurable rules (spec section 6). Deliberately a plain

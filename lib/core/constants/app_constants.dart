@@ -39,11 +39,13 @@ class AppConstants {
   static const double defaultLowFareCounterOfferThreshold = 4.0;
 
   /// Defaults for [RuleConfig.highValueJob] — driver request: a £15+ job at
-  /// £1.50+/mile is accepted immediately, bypassing every other rule except
-  /// the postcode blocklist; a £15+ job below that rate gets a counter-offer
-  /// instead of a reject.
+  /// £1.60+/mile is accepted immediately, bypassing every other rule except
+  /// the postcode blocklist; a £15+ job between £1.30/mile and £1.60/mile
+  /// gets a counter-offer instead of a reject; below £1.30/mile, this
+  /// override does nothing and normal rules apply.
   static const double defaultHighValueJobFareFloor = 15.0;
-  static const double defaultHighValueJobAcceptRateFloor = 1.50;
+  static const double defaultHighValueJobAcceptRateFloor = 1.60;
+  static const double defaultHighValueJobCounterOfferRateFloor = 1.30;
 
   /// Default value for [RuleConfig.quietTimeMinimumPoundsPerMile] — driver
   /// request: during quiet periods, relax the effective minimum £/mile down

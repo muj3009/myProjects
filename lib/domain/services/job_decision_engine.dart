@@ -101,14 +101,16 @@ class JobDecisionEngine {
               poundsPerMile: poundsPerMile,
               estimatedHourlyRate: hourlyRate,
             );
-          } else if (job.platform == PlatformType.bolt) {
+          } else if (job.platform == PlatformType.bolt &&
+              poundsPerMile >= highValue.counterOfferRateFloor) {
             return DecisionOutcome(
               decision: JobDecision.counterOffered,
               evaluations: evaluations,
               reason: _bulletList([
                 'Fare is £${job.fare!.toStringAsFixed(2)} (at or above your £${highValue.fareFloor.toStringAsFixed(2)} '
-                    'high-value threshold) but only £${poundsPerMile.toStringAsFixed(2)}/mile — JobFilter sent a '
-                    'counter-offer instead of rejecting it',
+                    'high-value threshold) at £${poundsPerMile.toStringAsFixed(2)}/mile (between your '
+                    '£${highValue.counterOfferRateFloor.toStringAsFixed(2)} and £${highValue.acceptRateFloor.toStringAsFixed(2)} '
+                    'counter-offer band) — JobFilter sent a counter-offer instead of rejecting it',
               ]),
               poundsPerMile: poundsPerMile,
               estimatedHourlyRate: hourlyRate,

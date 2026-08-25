@@ -301,6 +301,82 @@ void main() {
       expect(outcome.decision, JobDecision.rejected);
     });
 
+    test('rate at/above acceptRateFloor (£1.60) accepts immediately', () {
+      final settings = DriverSettings(
+        rules: const RuleConfig(
+          minimumPoundsPerMile: ThresholdRule(enabled: true, value: 2.00),
+          highValueJob: HighValueJobOverride(
+            enabled: true,
+            fareFloor: 15.0,
+            acceptRateFloor: 1.60,
+            counterOfferRateFloor: 1.30,
+          ),
+        ),
+      );
+      final outcome = engine.evaluate(
+        _job(fare: 24, tripDistanceMiles: 15), // £1.60/mile exactly
+        settings,
+      );
+      expect(outcome.decision, JobDecision.accepted);
+    });
+
+    test('rate inside the £1.30–£1.60 band counter-offers on Bolt', () {
+      final settings = DriverSettings(
+        rules: const RuleConfig(
+          minimumPoundsPerMile: ThresholdRule(enabled: true, value: 2.00),
+          highValueJob: HighValueJobOverride(
+            enabled: true,
+            fareFloor: 15.0,
+            acceptRateFloor: 1.60,
+            counterOfferRateFloor: 1.30,
+          ),
+        ),
+      );
+      final outcome = engine.evaluate(
+        _job(fare: 21, tripDistanceMiles: 15, platform: PlatformType.bolt), // £1.40/mile
+        settings,
+      );
+      expect(outcome.decision, JobDecision.counterOffered);
+    });
+
+    test('rate exactly at counterOfferRateFloor (£1.30) still counter-offers', () {
+      final settings = DriverSettings(
+        rules: const RuleConfig(
+          minimumPoundsPerMile: ThresholdRule(enabled: true, value: 2.00),
+          highValueJob: HighValueJobOverride(
+            enabled: true,
+            fareFloor: 15.0,
+            acceptRateFloor: 1.60,
+            counterOfferRateFloor: 1.30,
+          ),
+        ),
+      );
+      final outcome = engine.evaluate(
+        _job(fare: 19.50, tripDistanceMiles: 15, platform: PlatformType.bolt), // £1.30/mile exactly
+        settings,
+      );
+      expect(outcome.decision, JobDecision.counterOffered);
+    });
+
+    test('rate below counterOfferRateFloor (£1.30) does nothing — falls through to a normal reject', () {
+      final settings = DriverSettings(
+        rules: const RuleConfig(
+          minimumPoundsPerMile: ThresholdRule(enabled: true, value: 2.00),
+          highValueJob: HighValueJobOverride(
+            enabled: true,
+            fareFloor: 15.0,
+            acceptRateFloor: 1.60,
+            counterOfferRateFloor: 1.30,
+          ),
+        ),
+      );
+      final outcome = engine.evaluate(
+        _job(fare: 15, tripDistanceMiles: 12.5, platform: PlatformType.bolt), // £1.20/mile
+        settings,
+      );
+      expect(outcome.decision, JobDecision.rejected);
+    });
+
     test('a blocked destination postcode still rejects, even at a qualifying fare and rate', () {
       final settings = DriverSettings(
         rules: RuleConfig(
