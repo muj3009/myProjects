@@ -85,14 +85,14 @@ class _SimulationScreenState extends ConsumerState<SimulationScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Simulation Mode')),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(14),
         children: [
           Text(
             'Enter a hypothetical job to see exactly how the rule engine would decide it. '
             'Nothing here interacts with Uber or Bolt.',
             style: Theme.of(context).textTheme.bodyMedium,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 10),
           SectionCard(
             child: Column(
               children: [
@@ -107,23 +107,23 @@ class _SimulationScreenState extends ConsumerState<SimulationScreen> {
                   onSelectionChanged: (s) =>
                       setState(() => _platform = s.first),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 10),
                 _NumberField(label: 'Fare (£)', controller: _fareController),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 _NumberField(
                     label: 'Trip distance (miles)',
                     controller: _tripController),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 _NumberField(
                     label: 'Pickup distance (miles)',
                     controller: _pickupController),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 _NumberField(
                   label: 'Duration (minutes)',
                   controller: _durationController,
                   isInteger: true,
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 TextField(
                   controller: _postcodeController,
                   textCapitalization: TextCapitalization.characters,
@@ -131,7 +131,7 @@ class _SimulationScreenState extends ConsumerState<SimulationScreen> {
                     labelText: 'Destination postcode area (optional, e.g. LE4)',
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 10),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -141,7 +141,7 @@ class _SimulationScreenState extends ConsumerState<SimulationScreen> {
             ),
           ),
           if (_outcome != null && _job != null) ...[
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
             _ResultCard(job: _job!, outcome: _outcome!),
           ],
         ],
@@ -195,7 +195,7 @@ class _ResultCard extends StatelessWidget {
             ],
           ),
           if (outcome.poundsPerMile != null) ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Text(
               '£${outcome.poundsPerMile!.toStringAsFixed(2)}/mile',
               style: Theme.of(context).textTheme.headlineMedium,
@@ -210,17 +210,17 @@ class _ResultCard extends StatelessWidget {
                   ?.copyWith(color: onSurfaceVariant),
             ),
           if (job.decisionReason != null) ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Text(job.decisionReason!,
                 style: Theme.of(context).textTheme.bodyMedium),
           ],
-          const SizedBox(height: 16),
+          const SizedBox(height: 10),
           Divider(
               color: Theme.of(context)
                   .colorScheme
                   .outlineVariant
                   .withValues(alpha: 0.6)),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Text(
             'RULE-BY-RULE',
             style: Theme.of(context)
@@ -260,12 +260,12 @@ class _RuleResultRow extends StatelessWidget {
       RuleResult.unknown => Icons.help,
     };
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 18, color: color),
-          const SizedBox(width: 10),
+          Icon(icon, size: 16, color: color),
+          const SizedBox(width: 8),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

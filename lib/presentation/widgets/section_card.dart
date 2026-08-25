@@ -23,18 +23,18 @@ class SectionCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: cardTheme.color,
         borderRadius:
-            shape?.borderRadius as BorderRadius? ?? BorderRadius.circular(20),
+            shape?.borderRadius as BorderRadius? ?? BorderRadius.circular(16),
         border: shape?.side != null ? Border.fromBorderSide(shape!.side) : null,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Padding(
-        padding: padding ?? const EdgeInsets.all(20),
+        padding: padding ?? const EdgeInsets.all(14),
         child: child,
       ),
     );

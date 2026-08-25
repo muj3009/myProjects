@@ -25,23 +25,23 @@ class StatTile extends StatelessWidget {
       children: [
         if (icon != null) ...[
           TintedIconCircle(
-              icon: icon!, color: tint, diameter: 34, iconSize: 18),
-          const SizedBox(height: 10),
+              icon: icon!, color: tint, diameter: 24, iconSize: 13),
+          const SizedBox(height: 4),
         ],
         Text(
           value,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: theme.textTheme.headlineMedium
-              ?.copyWith(color: color, fontSize: 24),
+              ?.copyWith(color: color, fontSize: 18),
         ),
-        const SizedBox(height: 2),
+        const SizedBox(height: 1),
         Text(
           label,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: theme.textTheme.bodyMedium
-              ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+              ?.copyWith(color: theme.colorScheme.onSurfaceVariant, fontSize: 11),
         ),
       ],
     );

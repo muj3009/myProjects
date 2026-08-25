@@ -26,7 +26,7 @@ class GradientButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(100),
         onTap: onPressed,
         child: Ink(
-          height: 64,
+          height: 52,
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topCenter,
@@ -37,22 +37,22 @@ class GradientButton extends StatelessWidget {
             boxShadow: [
               BoxShadow(
                 color: baseColor.withValues(alpha: 0.4),
-                blurRadius: 18,
-                offset: const Offset(0, 8),
+                blurRadius: 14,
+                offset: const Offset(0, 6),
               ),
             ],
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, color: Colors.white, size: 28),
-              const SizedBox(width: 10),
+              Icon(icon, color: Colors.white, size: 22),
+              const SizedBox(width: 8),
               Text(
                 label,
                 style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w700,
-                  fontSize: 18,
+                  fontSize: 15,
                   letterSpacing: 0.2,
                 ),
               ),

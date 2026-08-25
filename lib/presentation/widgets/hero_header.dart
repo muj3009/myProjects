@@ -24,7 +24,7 @@ class HeroHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.fromLTRB(20, MediaQuery.of(context).padding.top + 16, 20, 26),
+      padding: EdgeInsets.fromLTRB(12, MediaQuery.of(context).padding.top + 6, 12, 10),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -35,8 +35,8 @@ class HeroHeader extends StatelessWidget {
           ],
         ),
         borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(32),
-          bottomRight: Radius.circular(32),
+          bottomLeft: Radius.circular(18),
+          bottomRight: Radius.circular(18),
         ),
       ),
       child: child,

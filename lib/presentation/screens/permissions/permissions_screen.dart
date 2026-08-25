@@ -83,11 +83,11 @@ class _PermissionsScreenState extends ConsumerState<PermissionsScreen>
           : RefreshIndicator(
               onRefresh: _refresh,
               child: ListView(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(14),
                 children: [
                   for (final item in _items)
                     Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.only(bottom: 8),
                       child: SectionCard(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -95,8 +95,8 @@ class _PermissionsScreenState extends ConsumerState<PermissionsScreen>
                             Row(
                               children: [
                                 Container(
-                                  width: 40,
-                                  height: 40,
+                                  width: 34,
+                                  height: 34,
                                   decoration: BoxDecoration(
                                     color: (item.isGranted
                                             ? StatusColors.accepted
@@ -111,10 +111,10 @@ class _PermissionsScreenState extends ConsumerState<PermissionsScreen>
                                     color: item.isGranted
                                         ? StatusColors.accepted
                                         : StatusColors.pendingOrUnknown,
-                                    size: 22,
+                                    size: 18,
                                   ),
                                 ),
-                                const SizedBox(width: 12),
+                                const SizedBox(width: 10),
                                 Expanded(
                                   child: Text(
                                     item.title,
@@ -124,7 +124,7 @@ class _PermissionsScreenState extends ConsumerState<PermissionsScreen>
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: 6),
                             Text(
                               item.explanation,
                               style: Theme.of(context)
@@ -136,7 +136,7 @@ class _PermissionsScreenState extends ConsumerState<PermissionsScreen>
                                           .onSurfaceVariant),
                             ),
                             if (!item.isGranted) ...[
-                              const SizedBox(height: 12),
+                              const SizedBox(height: 8),
                               OutlinedButton(
                                 onPressed: () async {
                                   if (item.id == 'accessibility_service') {

@@ -62,20 +62,20 @@ class _JobHistoryScreenState extends ConsumerState<JobHistoryScreen> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12),
+              padding: const EdgeInsets.symmetric(vertical: 8),
               child: SizedBox(
-                height: 48,
+                height: 42,
                 child: ListView(
                   scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
                   children: [
                     for (final filter in _QuickFilter.values) ...[
                       ChoiceChip(
                         avatar: TintedIconCircle(
                           icon: _iconFor(filter),
                           color: _colorFor(filter),
-                          diameter: 20,
-                          iconSize: 11,
+                          diameter: 18,
+                          iconSize: 10,
                         ),
                         showCheckmark: false,
                         label: Text(_labelFor(filter)),
@@ -83,7 +83,7 @@ class _JobHistoryScreenState extends ConsumerState<JobHistoryScreen> {
                         selectedColor: _colorFor(filter).withValues(alpha: 0.18),
                         onSelected: (_) => _applyFilter(filter),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 6),
                     ],
                   ],
                 ),
@@ -95,10 +95,10 @@ class _JobHistoryScreenState extends ConsumerState<JobHistoryScreen> {
                   : state.jobs.isEmpty
                       ? const _EmptyState()
                       : ListView.builder(
-                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                          padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
                           itemCount: state.jobs.length,
                           itemBuilder: (context, i) => Padding(
-                            padding: const EdgeInsets.only(bottom: 12),
+                            padding: const EdgeInsets.only(bottom: 8),
                             child: _JobHistoryTile(job: state.jobs[i]),
                           ),
                         ),
@@ -170,15 +170,15 @@ class _JobsHeroBody extends StatelessWidget {
       children: [
         const Text('Jobs',
             style: TextStyle(
-                color: Colors.white, fontWeight: FontWeight.w800, fontSize: 26, letterSpacing: -0.3)),
-        const SizedBox(height: 18),
+                color: Colors.white, fontWeight: FontWeight.w800, fontSize: 22, letterSpacing: -0.3)),
+        const SizedBox(height: 12),
         Row(
           children: [
-            const Icon(Icons.local_taxi_outlined, color: Colors.white, size: 20),
-            const SizedBox(width: 8),
+            const Icon(Icons.local_taxi_outlined, color: Colors.white, size: 18),
+            const SizedBox(width: 6),
             Text(
               statusLine,
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 16),
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 14),
             ),
           ],
         ),
@@ -189,10 +189,10 @@ class _JobsHeroBody extends StatelessWidget {
         // explanation from [_EmptyState] directly below, so repeating it
         // here too would just be noise stacked on noise.
         if (isAllFilter && jobs.isNotEmpty) ...[
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           Wrap(
-            spacing: 8,
-            runSpacing: 8,
+            spacing: 6,
+            runSpacing: 6,
             children: [
               HeroPill(label: '${accepted.length} accepted'),
               HeroPill(label: '$rejected rejected'),
@@ -213,13 +213,13 @@ class _EmptyState extends StatelessWidget {
     final onSurfaceVariant = Theme.of(context).colorScheme.onSurfaceVariant;
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.inbox_outlined,
-                size: 56, color: onSurfaceVariant.withValues(alpha: 0.5)),
-            const SizedBox(height: 16),
+                size: 44, color: onSurfaceVariant.withValues(alpha: 0.5)),
+            const SizedBox(height: 10),
             Text(
               'No jobs yet',
               style: Theme.of(context)
@@ -227,7 +227,7 @@ class _EmptyState extends StatelessWidget {
                   .titleLarge
                   ?.copyWith(color: onSurfaceVariant),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 4),
             Text(
               'Jobs JobFilter sees while automation is running will show up here.',
               textAlign: TextAlign.center,
@@ -253,17 +253,17 @@ class _PlatformBadge extends StatelessWidget {
     final isUber = platform == PlatformType.uber;
     final color = isUber ? Colors.black : const Color(0xFF34D186);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
         platform.displayName.toUpperCase(),
         style: TextStyle(
             color: color,
             fontWeight: FontWeight.w800,
-            fontSize: 11,
+            fontSize: 10,
             letterSpacing: 0.4),
       ),
     );
@@ -290,7 +290,7 @@ class _JobHistoryTile extends StatelessWidget {
                 Row(
                   children: [
                     _PlatformBadge(platform: job.platform),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 6),
                     Text(timeLabel,
                         style: Theme.of(context)
                             .textTheme
@@ -298,7 +298,7 @@ class _JobHistoryTile extends StatelessWidget {
                             ?.copyWith(color: onSurfaceVariant)),
                   ],
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 4),
                 Text(
                   job.fare != null
                       ? '£${job.fare!.toStringAsFixed(2)}'
@@ -315,13 +315,13 @@ class _JobHistoryTile extends StatelessWidget {
                         ?.copyWith(color: onSurfaceVariant),
                   ),
                 if (job.decisionReason != null) ...[
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   Divider(
                       color: Theme.of(context)
                           .colorScheme
                           .outlineVariant
                           .withValues(alpha: 0.5)),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   Text(
                     'Reason',
                     style: Theme.of(context)
@@ -341,7 +341,7 @@ class _JobHistoryTile extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 6),
           DecisionBadge(decision: job.decision),
         ],
       ),

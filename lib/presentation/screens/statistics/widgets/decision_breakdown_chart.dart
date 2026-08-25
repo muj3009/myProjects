@@ -56,10 +56,10 @@ class _DecisionBreakdownChartState extends State<DecisionBreakdownChart> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Decision breakdown', style: theme.textTheme.titleLarge),
-          const SizedBox(height: 16),
+          const SizedBox(height: 10),
           if (_total == 0)
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 24),
+              padding: const EdgeInsets.symmetric(vertical: 18),
               child: Center(
                 child: Text('No jobs in this range yet',
                     style: theme.textTheme.bodyMedium),
@@ -69,8 +69,8 @@ class _DecisionBreakdownChartState extends State<DecisionBreakdownChart> {
             Row(
               children: [
                 SizedBox(
-                  height: 140,
-                  width: 140,
+                  height: 120,
+                  width: 120,
                   child: Stack(
                     alignment: Alignment.center,
                     children: [
@@ -81,12 +81,12 @@ class _DecisionBreakdownChartState extends State<DecisionBreakdownChart> {
                               PieChartSectionData(
                                 value: entries[i].value.toDouble(),
                                 color: entries[i].color,
-                                radius: i == _touchedIndex ? 26 : 22,
+                                radius: i == _touchedIndex ? 22 : 19,
                                 showTitle: false,
                               ),
                           ],
                           sectionsSpace: 2,
-                          centerSpaceRadius: 40,
+                          centerSpaceRadius: 34,
                           pieTouchData: PieTouchData(
                             touchCallback: (event, response) {
                               setState(() {
@@ -119,7 +119,7 @@ class _DecisionBreakdownChartState extends State<DecisionBreakdownChart> {
                     ],
                   ),
                 ),
-                const SizedBox(width: 20),
+                const SizedBox(width: 14),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -127,12 +127,12 @@ class _DecisionBreakdownChartState extends State<DecisionBreakdownChart> {
                     children: [
                       for (final entry in entries)
                         Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          padding: const EdgeInsets.symmetric(vertical: 3),
                           child: Row(
                             children: [
                               Container(
-                                width: 10,
-                                height: 10,
+                                width: 8,
+                                height: 8,
                                 decoration: BoxDecoration(
                                     color: entry.color, shape: BoxShape.circle),
                               ),

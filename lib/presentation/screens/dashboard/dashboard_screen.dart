@@ -76,7 +76,7 @@ class DashboardScreen extends ConsumerWidget {
                 automation: automation, settings: settings, minRule: minRule),
             Expanded(
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
+                padding: const EdgeInsets.fromLTRB(14, 14, 14, 16),
                 children: [
                   if (!automation.isSupported)
                     OutlinedButton.icon(
@@ -102,7 +102,7 @@ class DashboardScreen extends ConsumerWidget {
                       onPressed: controller.start,
                     ),
                   if (automation.isSupported && !automation.isActive) ...[
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 6),
                     TextButton(
                       onPressed: () => Navigator.of(context).push(
                         MaterialPageRoute(
@@ -111,10 +111,10 @@ class DashboardScreen extends ConsumerWidget {
                       child: const Text('Check permissions / setup'),
                     ),
                   ],
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
                   if (automation.lastJob != null) ...[
                     _LastJobCard(automation: automation),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
                   ],
                   SectionHeader(
                     'TODAY',
@@ -161,7 +161,7 @@ class DashboardScreen extends ConsumerWidget {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
                   if (!automation.isSupported)
                     _IosNotSupportedCard(reason: automation.unsupportedReason!),
                 ],
@@ -195,7 +195,7 @@ class _DashboardHero extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: EdgeInsets.fromLTRB(
-          20, MediaQuery.of(context).padding.top + 16, 20, 26),
+          16, MediaQuery.of(context).padding.top + 10, 16, 18),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -211,8 +211,8 @@ class _DashboardHero extends StatelessWidget {
                 ],
         ),
         borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(32),
-          bottomRight: Radius.circular(32),
+          bottomLeft: Radius.circular(24),
+          bottomRight: Radius.circular(24),
         ),
       ),
       child: Column(
@@ -223,40 +223,40 @@ class _DashboardHero extends StatelessWidget {
             style: const TextStyle(
                 color: Colors.white70,
                 fontWeight: FontWeight.w700,
-                fontSize: 14,
+                fontSize: 13,
                 letterSpacing: 0.3),
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 12),
           Row(
             children: [
               _StatusDot(
                   active: isActive,
                   color: isActive ? StatusColors.accepted : Colors.white70),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   isActive ? 'AUTOMATION ACTIVE' : 'AUTOMATION OFF',
                   style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.w800,
-                      fontSize: 24,
+                      fontSize: 20,
                       letterSpacing: 0.2),
                 ),
               ),
               TintedIconCircle(
                 icon: Icons.bolt,
                 color: isActive ? StatusColors.accepted : AppTheme.accentBlue,
-                diameter: 46,
-                iconSize: 24,
+                diameter: 38,
+                iconSize: 20,
               ),
             ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 4),
           Text(
             automation.statusMessage,
-            style: const TextStyle(color: Colors.white70, fontSize: 15),
+            style: const TextStyle(color: Colors.white70, fontSize: 13),
           ),
-          const SizedBox(height: 22),
+          const SizedBox(height: 14),
           Row(
             children: [
               Expanded(
@@ -268,7 +268,7 @@ class _DashboardHero extends StatelessWidget {
                       : 'Off',
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               Expanded(
                 child: _HeroStatChip(
                   icon: Icons.local_taxi_outlined,
@@ -300,26 +300,26 @@ class _HeroStatChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.white.withValues(alpha: 0.16)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: Colors.white70, size: 18),
-          const SizedBox(height: 8),
+          Icon(icon, color: Colors.white70, size: 16),
+          const SizedBox(height: 6),
           Text(value,
               style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w800,
-                  fontSize: 19)),
+                  fontSize: 17)),
           const SizedBox(height: 2),
           Text(label,
-              style: const TextStyle(color: Colors.white70, fontSize: 12)),
+              style: const TextStyle(color: Colors.white70, fontSize: 11)),
         ],
       ),
     );
@@ -403,7 +403,7 @@ class _LastJobCard extends ConsumerWidget {
               DecisionBadge(decision: job.decision),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Align(
             alignment: Alignment.centerRight,
             child: _HeaderLink(
@@ -452,21 +452,21 @@ class _StatusDot extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 16,
-      height: 16,
+      width: 14,
+      height: 14,
       child: Stack(
         alignment: Alignment.center,
         children: [
           if (active)
             Container(
-              width: 16,
-              height: 16,
+              width: 14,
+              height: 14,
               decoration: BoxDecoration(
                   shape: BoxShape.circle, color: color.withValues(alpha: 0.25)),
             ),
           Container(
-            width: 10,
-            height: 10,
+            width: 8,
+            height: 8,
             decoration: BoxDecoration(shape: BoxShape.circle, color: color),
           ),
         ],

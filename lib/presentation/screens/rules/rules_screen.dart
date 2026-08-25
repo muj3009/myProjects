@@ -49,15 +49,15 @@ class RulesScreen extends ConsumerWidget {
             ),
             Expanded(
               child: ListView(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.fromLTRB(8, 4, 8, 8),
                 children: [
           const SectionHeader('CORE RULE'),
           _FeaturedRuleCard(
             child: ThresholdRuleTile(
               title: 'Minimum £/mile',
-              subtitle: 'The core rule — reject anything below this rate.',
+              subtitle: 'Reject below this.',
               unitPrefix: '£',
-              unitSuffix: '/mile',
+              unitSuffix: '/mi',
               icon: Icons.attach_money,
               rule: rules.minimumPoundsPerMile,
               emphasized: true,
@@ -66,15 +66,15 @@ class RulesScreen extends ConsumerWidget {
                   updateRules((c) => c.copyWith(minimumPoundsPerMile: r)),
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 6),
           const SectionHeader('ADDITIONAL FILTERS'),
           SectionCard(
-            padding: const EdgeInsets.symmetric(vertical: 4),
+            padding: const EdgeInsets.symmetric(vertical: 1),
             child: Column(
               children: [
                 ThresholdRuleTile(
-                  title: 'Maximum pickup distance',
-                  subtitle: 'Long drives just to reach the passenger.',
+                  title: 'Max pickup',
+                  subtitle: 'Long drives to passenger.',
                   unitSuffix: ' $distanceUnitLabel',
                   icon: Icons.social_distance,
                   rule: rules.maximumPickupDistanceMiles,
@@ -84,8 +84,8 @@ class RulesScreen extends ConsumerWidget {
                 ),
                 const _RowDivider(),
                 ThresholdRuleTile(
-                  title: 'Minimum fare',
-                  subtitle: 'A flat fare floor, regardless of £/mile.',
+                  title: 'Min fare',
+                  subtitle: 'Flat fare floor.',
                   unitPrefix: '£',
                   icon: Icons.payments_outlined,
                   rule: rules.minimumFare,
@@ -94,8 +94,8 @@ class RulesScreen extends ConsumerWidget {
                 ),
                 const _RowDivider(),
                 ThresholdRuleTile(
-                  title: 'Maximum trip distance',
-                  subtitle: 'Reject unusually long trips.',
+                  title: 'Max trip',
+                  subtitle: 'Reject long trips.',
                   unitSuffix: ' $distanceUnitLabel',
                   icon: Icons.route_outlined,
                   rule: rules.maximumTripDistanceMiles,
@@ -105,10 +105,10 @@ class RulesScreen extends ConsumerWidget {
                 ),
                 const _RowDivider(),
                 ThresholdRuleTile(
-                  title: 'Minimum estimated hourly rate',
-                  subtitle: 'Only when a duration estimate is available.',
+                  title: 'Min hourly',
+                  subtitle: 'When duration known.',
                   unitPrefix: '£',
-                  unitSuffix: '/hour',
+                  unitSuffix: '/hr',
                   icon: Icons.schedule_outlined,
                   rule: rules.minimumHourlyRate,
                   color: const Color(0xFFEC4899),
@@ -123,8 +123,8 @@ class RulesScreen extends ConsumerWidget {
                 ),
                 const _RowDivider(),
                 ThresholdRuleTile(
-                  title: 'Counter-offer near-miss jobs (Bolt)',
-                  subtitle: '% of your minimum £/mile that still gets a counter.',
+                  title: 'Counter near-miss (Bolt)',
+                  subtitle: '% of min £/mi for counter.',
                   unitSuffix: '%',
                   icon: Icons.swap_horiz,
                   rule: rules.counterOfferBandPercent,
@@ -134,8 +134,8 @@ class RulesScreen extends ConsumerWidget {
                 ),
                 const _RowDivider(),
                 ThresholdRuleTile(
-                  title: 'Auto counter-offer low fares (Bolt)',
-                  subtitle: 'Fare below this always gets your max counter-offer, not a reject.',
+                  title: 'Auto counter low (Bolt)',
+                  subtitle: 'Below this gets max counter.',
                   unitPrefix: '£',
                   icon: Icons.local_offer_outlined,
                   rule: rules.lowFareCounterOfferThreshold,
@@ -150,10 +150,10 @@ class RulesScreen extends ConsumerWidget {
                 ),
                 const _RowDivider(),
                 ThresholdRuleTile(
-                  title: 'Relax minimum £/mile when quiet',
-                  subtitle: 'Below 8 jobs in 5 minutes, accept above this rate instead.',
+                  title: 'Relax £/mi when quiet',
+                  subtitle: 'Below 8 jobs/5min.',
                   unitPrefix: '£',
-                  unitSuffix: '/mile',
+                  unitSuffix: '/mi',
                   icon: Icons.nightlight_outlined,
                   rule: rules.quietTimeMinimumPoundsPerMile,
                   color: const Color(0xFFB45309),
@@ -163,16 +163,15 @@ class RulesScreen extends ConsumerWidget {
               ],
             ),
           ),
-          const SizedBox(height: 24),
-          const SectionHeader('£/MILE CALCULATION'),
+          const SizedBox(height: 6),
+          const SectionHeader('£/MI CALCULATION'),
           SectionCard(
-            padding: const EdgeInsets.symmetric(vertical: 4),
+            padding: const EdgeInsets.symmetric(vertical: 1),
             child: Column(
               children: [
                 RadioListTile<DistanceCalculationMode>(
                   title: const Text('Trip distance'),
-                  subtitle:
-                      const Text('fare ÷ passenger trip distance (default)'),
+                  subtitle: const Text('fare ÷ trip (default)'),
                   value: DistanceCalculationMode.tripDistance,
                   groupValue: settings.distanceCalculationMode,
                   selected: settings.distanceCalculationMode ==
@@ -189,8 +188,8 @@ class RulesScreen extends ConsumerWidget {
                   ),
                 ),
                 RadioListTile<DistanceCalculationMode>(
-                  title: const Text('Total driving distance'),
-                  subtitle: const Text('fare ÷ (pickup + trip distance)'),
+                  title: const Text('Total driving'),
+                  subtitle: const Text('fare ÷ (pickup + trip)'),
                   value: DistanceCalculationMode.totalDrivingDistance,
                   groupValue: settings.distanceCalculationMode,
                   selected: settings.distanceCalculationMode ==
@@ -209,10 +208,10 @@ class RulesScreen extends ConsumerWidget {
               ],
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 6),
           const SectionHeader('PLATFORM OVERRIDES'),
           SectionCard(
-            padding: const EdgeInsets.symmetric(vertical: 4),
+            padding: const EdgeInsets.symmetric(vertical: 1),
             child: Column(
               children: [
                 for (final platform in [PlatformType.uber, PlatformType.bolt]) ...[
@@ -241,7 +240,7 @@ class _RowDivider extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Divider(
         height: 1,
-        indent: 66,
+        indent: 58,
         endIndent: 8,
         color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5),
       );
@@ -266,16 +265,16 @@ class _FeaturedRuleCard extends StatelessWidget {
           end: Alignment.bottomRight,
           colors: [primary.withValues(alpha: 0.14), primary.withValues(alpha: 0.03)],
         ),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: primary.withValues(alpha: 0.25)),
       ),
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.symmetric(vertical: 4),
       child: child,
     );
   }
 }
 
-/// The hero's content: the screen title plus "did I actually set this up
+/// The hero's content: screen title plus "did I actually set this up
 /// right" at a glance — previously verifying the driver's own rule setup
 /// meant scrolling and reading every card. Empty when no filters are active
 /// so the fallback behavior (every job passes through) is stated plainly
@@ -290,7 +289,7 @@ class _RulesHeroBody extends StatelessWidget {
   Widget build(BuildContext context) {
     final active = <String>[
       if (rules.minimumPoundsPerMile.enabled)
-        '£${rules.minimumPoundsPerMile.value.toStringAsFixed(2)}/mile min',
+        '£${rules.minimumPoundsPerMile.value.toStringAsFixed(2)}/mi min',
       if (rules.maximumPickupDistanceMiles.enabled)
         'Max ${rules.maximumPickupDistanceMiles.value.toStringAsFixed(1)} $distanceUnitLabel pickup',
       if (rules.minimumFare.enabled)
@@ -303,13 +302,13 @@ class _RulesHeroBody extends StatelessWidget {
         '${rules.postcodeBlocklist.blockedPrefixes.length} area'
             '${rules.postcodeBlocklist.blockedPrefixes.length == 1 ? '' : 's'} blocked',
       if (rules.counterOfferBandPercent.enabled)
-        'Counter-offer at ${rules.counterOfferBandPercent.value.toStringAsFixed(0)}%',
+        'Counter at ${rules.counterOfferBandPercent.value.toStringAsFixed(0)}%',
       if (rules.lowFareCounterOfferThreshold.enabled)
-        'Auto counter-offer under £${rules.lowFareCounterOfferThreshold.value.toStringAsFixed(2)}',
+        'Auto counter under £${rules.lowFareCounterOfferThreshold.value.toStringAsFixed(2)}',
       if (rules.highValueJob.enabled)
-        '£${rules.highValueJob.fareFloor.toStringAsFixed(0)}+ at £${rules.highValueJob.acceptRateFloor.toStringAsFixed(2)}/mi auto-accepts',
+        '£${rules.highValueJob.fareFloor.toStringAsFixed(0)}+ at £${rules.highValueJob.acceptRateFloor.toStringAsFixed(2)}/mi auto',
       if (rules.quietTimeMinimumPoundsPerMile.enabled)
-        'Quiet-time min £${rules.quietTimeMinimumPoundsPerMile.value.toStringAsFixed(2)}/mile',
+        'Quiet min £${rules.quietTimeMinimumPoundsPerMile.value.toStringAsFixed(2)}/mi',
     ];
 
     return Column(
@@ -317,29 +316,29 @@ class _RulesHeroBody extends StatelessWidget {
       children: [
         const Text('Rules',
             style: TextStyle(
-                color: Colors.white, fontWeight: FontWeight.w800, fontSize: 26, letterSpacing: -0.3)),
-        const SizedBox(height: 18),
+                color: Colors.white, fontWeight: FontWeight.w800, fontSize: 18, letterSpacing: -0.3)),
+        const SizedBox(height: 8),
         Row(
           children: [
-            const Icon(Icons.fact_check_outlined, color: Colors.white, size: 20),
-            const SizedBox(width: 8),
+            const Icon(Icons.fact_check_outlined, color: Colors.white, size: 16),
+            const SizedBox(width: 4),
             Text(
               active.isEmpty ? 'No filters active' : '${active.length} rule${active.length == 1 ? '' : 's'} active',
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 16),
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 13),
             ),
           ],
         ),
         if (active.isEmpty) ...[
-          const SizedBox(height: 6),
+          const SizedBox(height: 3),
           const Text(
-            'Every job passes straight through unless you turn a rule on below.',
-            style: TextStyle(color: Colors.white70, fontSize: 14),
+            'Every job passes through unless you turn a rule on below.',
+            style: TextStyle(color: Colors.white70, fontSize: 12),
           ),
         ] else ...[
-          const SizedBox(height: 12),
+          const SizedBox(height: 6),
           Wrap(
-            spacing: 8,
-            runSpacing: 8,
+            spacing: 4,
+            runSpacing: 4,
             children: [for (final label in active) HeroPill(label: label)],
           ),
         ],

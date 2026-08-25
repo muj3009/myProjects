@@ -30,7 +30,7 @@ class DecisionBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = _color();
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(999),
@@ -39,15 +39,15 @@ class DecisionBadge extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(_icon(), size: 15, color: color),
-          const SizedBox(width: 6),
+          Icon(_icon(), size: 13, color: color),
+          const SizedBox(width: 4),
           Text(
             decision.label,
             style: TextStyle(
                 color: color,
                 fontWeight: FontWeight.w800,
                 letterSpacing: 0.5,
-                fontSize: 13),
+                fontSize: 12),
           ),
         ],
       ),

@@ -126,7 +126,7 @@ class _HighValueJobTileState extends State<HighValueJobTile> {
     final theme = Theme.of(context);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -134,7 +134,7 @@ class _HighValueJobTileState extends State<HighValueJobTile> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               RuleIcon(icon: Icons.workspace_premium_outlined, active: config.enabled, color: _color),
-              const SizedBox(width: 12),
+              const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -155,21 +155,21 @@ class _HighValueJobTileState extends State<HighValueJobTile> {
                 ),
               ),
               if (config.enabled) ...[
-                const SizedBox(width: 8),
+                const SizedBox(width: 6),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: _color.withValues(alpha: 0.14),
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(16),
                   ),
                   child: Text(
                     '£${config.fareFloor.toStringAsFixed(0)}+ · £${config.acceptRateFloor.toStringAsFixed(2)}/mi '
                     '· ctr £${config.counterOfferRateFloor.toStringAsFixed(2)}+',
-                    style: const TextStyle(color: _color, fontWeight: FontWeight.w800, fontSize: 12),
+                    style: const TextStyle(color: _color, fontWeight: FontWeight.w800, fontSize: 11),
                   ),
                 ),
               ],
-              const SizedBox(width: 4),
+              const SizedBox(width: 2),
               Switch(
                 value: config.enabled,
                 onChanged: (enabled) => widget.onChanged(config.copyWith(enabled: enabled)),
@@ -182,7 +182,7 @@ class _HighValueJobTileState extends State<HighValueJobTile> {
             alignment: Alignment.topCenter,
             child: config.enabled
                 ? Padding(
-                    padding: const EdgeInsets.only(top: 10, left: 52),
+                    padding: const EdgeInsets.only(top: 8, left: 44),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -203,7 +203,7 @@ class _HighValueJobTileState extends State<HighValueJobTile> {
                                 onChanged: _commitFare,
                               ),
                             ),
-                            const SizedBox(width: 10),
+                            const SizedBox(width: 8),
                             Expanded(
                               child: TextField(
                                 controller: _rateController,
@@ -222,7 +222,7 @@ class _HighValueJobTileState extends State<HighValueJobTile> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 8),
                         Row(
                           children: [
                             Expanded(
@@ -241,7 +241,7 @@ class _HighValueJobTileState extends State<HighValueJobTile> {
                                 onChanged: _commitCounterOfferRate,
                               ),
                             ),
-                            const SizedBox(width: 10),
+                            const SizedBox(width: 8),
                             const Expanded(child: SizedBox.shrink()),
                           ],
                         ),

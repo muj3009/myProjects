@@ -17,13 +17,15 @@ class SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final labelWidget = Text(
       label,
-      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+      style: Theme.of(context).textTheme.labelSmall?.copyWith(
             color: Theme.of(context).colorScheme.onSurfaceVariant,
-            letterSpacing: 1.2,
+            letterSpacing: 1.0,
+            fontWeight: FontWeight.w700,
+            fontSize: 11,
           ),
     );
     return Padding(
-      padding: const EdgeInsets.only(left: 4, bottom: 8),
+      padding: const EdgeInsets.only(left: 2, bottom: 4),
       child: trailing == null
           ? labelWidget
           : Row(

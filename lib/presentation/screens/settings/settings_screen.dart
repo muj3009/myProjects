@@ -42,9 +42,9 @@ class SettingsScreen extends ConsumerWidget {
                       style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.w800,
-                          fontSize: 26,
+                          fontSize: 18,
                           letterSpacing: -0.3)),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 2),
                   Text(
                     '£${minRule.value.toStringAsFixed(2)}/mile · '
                     '${switch (settings.platformSelection) {
@@ -52,31 +52,31 @@ class SettingsScreen extends ConsumerWidget {
                       PlatformSelection.bolt => 'Bolt',
                       PlatformSelection.both => 'Both',
                     }} · '
-                    '${settings.distanceUnit == DistanceUnit.miles ? 'Miles' : 'Kilometres'}',
-                    style: const TextStyle(color: Colors.white70, fontSize: 14),
+                    '${settings.distanceUnit == DistanceUnit.miles ? 'Mi' : 'Km'}',
+                    style: const TextStyle(color: Colors.white70, fontSize: 11),
                   ),
                 ],
               ),
             ),
             Expanded(
               child: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(8, 4, 8, 8),
         children: [
-          Text('Minimum £ per mile',
-              style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 8),
+          Text('Minimum £/mi', style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 2),
           SectionCard(
+            padding: const EdgeInsets.all(6),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   '£${minRule.value.toStringAsFixed(2)}',
-                  style: Theme.of(context).textTheme.headlineMedium,
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontSize: 22),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 2),
                 Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
+                  spacing: 3,
+                  runSpacing: 3,
                   children: [
                     for (final preset in _quickPresets)
                       ChoiceChip(
@@ -90,27 +90,27 @@ class SettingsScreen extends ConsumerWidget {
                             ),
                           ),
                         ),
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
                   ],
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 2),
                 TextButton(
+                  style: TextButton.styleFrom(
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  ),
                   onPressed: () => _showCustomValueDialog(
                       context, controller, minRule.value),
-                  child: const Text('Enter a custom amount'),
+                  child: const Text('Custom'),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 28),
-          Text('Platform', style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 8),
-          // A 3-way choice like this doesn't need three full-height list
-          // rows with radio dots — the segmented control the Statistics
-          // screen already uses for its range picker says the same thing
-          // (Uber / Bolt / Both are mutually exclusive) in a third of the
-          // vertical space, and the selected segment is unmistakable
-          // without a separate radio glyph.
+          const SizedBox(height: 6),
+          Text('Platform', style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 2),
           SegmentedButton<PlatformSelection>(
             showSelectedIcon: false,
             segments: const [
@@ -122,23 +122,24 @@ class SettingsScreen extends ConsumerWidget {
             onSelectionChanged: (s) =>
                 controller.update((st) => st.copyWith(platformSelection: s.first)),
           ),
-          const SizedBox(height: 28),
-          Text('Distance unit', style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
+          Text('Distance', style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 2),
           SegmentedButton<DistanceUnit>(
             showSelectedIcon: false,
             segments: const [
-              ButtonSegment(value: DistanceUnit.miles, label: Text('Miles')),
-              ButtonSegment(value: DistanceUnit.kilometres, label: Text('Kilometres')),
+              ButtonSegment(value: DistanceUnit.miles, label: Text('Mi')),
+              ButtonSegment(value: DistanceUnit.kilometres, label: Text('Km')),
             ],
             selected: {settings.distanceUnit},
             onSelectionChanged: (s) =>
                 controller.update((st) => st.copyWith(distanceUnit: s.first)),
           ),
-          const SizedBox(height: 28),
-          Text('App name', style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
+          Text('App name', style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 2),
           SectionCard(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             child: TextFormField(
               initialValue: settings.appName,
               onFieldSubmitted: (value) {
@@ -149,57 +150,51 @@ class SettingsScreen extends ConsumerWidget {
               },
             ),
           ),
-          const SizedBox(height: 28),
+          const SizedBox(height: 6),
           SectionCard(
-            padding: const EdgeInsets.symmetric(vertical: 8),
+            padding: const EdgeInsets.symmetric(vertical: 1),
             child: Column(
               children: [
                 _SettingsLinkTile(
                   icon: Icons.rule_folder_outlined,
                   title: 'Advanced rules',
-                  subtitle:
-                      'Pickup distance, minimum fare, hourly rate, and more',
-                  onTap:
-                      () {}, // Rules tab is reachable from bottom navigation.
+                  subtitle: 'Pickup, min fare, hourly rate, etc.',
+                  onTap: () {},
                 ),
-                const Divider(height: 1, indent: 68),
+                const Divider(height: 1, indent: 44),
                 _SettingsLinkTile(
                   icon: Icons.security_outlined,
                   title: 'Permissions & setup',
                   onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                        builder: (_) => const PermissionsScreen()),
-                  ),
+                    MaterialPageRoute(builder: (_) => const PermissionsScreen())),
                 ),
-                const Divider(height: 1, indent: 68),
+                const Divider(height: 1, indent: 44),
                 _SettingsLinkTile(
                   icon: Icons.science_outlined,
                   title: 'Simulation / test mode',
                   onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const SimulationScreen()),
-                  ),
+                    MaterialPageRoute(builder: (_) => const SimulationScreen())),
                 ),
                 if (kDebugMode) ...[
-                  const Divider(height: 1, indent: 68),
+                  const Divider(height: 1, indent: 44),
                   _SettingsLinkTile(
                     icon: Icons.bug_report_outlined,
                     title: 'Developer debug screen',
                     onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const DebugScreen()),
-                    ),
+                      MaterialPageRoute(builder: (_) => const DebugScreen())),
                   ),
                 ],
               ],
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 4),
           OutlinedButton.icon(
             style: OutlinedButton.styleFrom(
               foregroundColor: Theme.of(context).colorScheme.error,
               side: BorderSide(color: Theme.of(context).colorScheme.error),
             ),
             onPressed: () => _confirmClearHistory(context, ref),
-            icon: const Icon(Icons.delete_outline),
+            icon: const Icon(Icons.delete_outline, size: 16),
             label: const Text('Clear job history'),
           ),
         ],

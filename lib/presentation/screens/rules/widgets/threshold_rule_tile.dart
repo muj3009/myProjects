@@ -132,7 +132,7 @@ class _ThresholdRuleTileState extends State<ThresholdRuleTile> {
         '${widget.unitPrefix}${rule.value.toStringAsFixed(2)}${widget.unitSuffix}';
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -145,7 +145,7 @@ class _ThresholdRuleTileState extends State<ThresholdRuleTile> {
                 large: widget.emphasized,
                 color: widget.color,
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -170,10 +170,10 @@ class _ThresholdRuleTileState extends State<ThresholdRuleTile> {
               // number would just steal the width the title needs to avoid
               // wrapping mid-word.
               if (rule.enabled && !widget.emphasized) ...[
-                const SizedBox(width: 8),
+                const SizedBox(width: 6),
                 _ValueBadge(text: valueText),
               ],
-              const SizedBox(width: 4),
+              const SizedBox(width: 2),
               Switch(
                 value: rule.enabled,
                 onChanged: (enabled) =>
@@ -187,7 +187,7 @@ class _ThresholdRuleTileState extends State<ThresholdRuleTile> {
             alignment: Alignment.topCenter,
             child: rule.enabled
                 ? Padding(
-                    padding: const EdgeInsets.only(top: 10, left: 52),
+                    padding: const EdgeInsets.only(top: 8, left: 44),
                     child: TextField(
                       controller: _controller,
                       keyboardType:
@@ -253,14 +253,14 @@ class _ValueBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final primary = Theme.of(context).colorScheme.primary;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: primary.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Text(
         text,
-        style: TextStyle(color: primary, fontWeight: FontWeight.w800, fontSize: 12),
+        style: TextStyle(color: primary, fontWeight: FontWeight.w800, fontSize: 11),
       ),
     );
   }
@@ -296,7 +296,7 @@ class RuleIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final diameter = large ? 46.0 : 38.0;
+    final diameter = large ? 40.0 : 32.0;
     if (!active) {
       final muted = color ?? scheme.onSurfaceVariant;
       return Container(

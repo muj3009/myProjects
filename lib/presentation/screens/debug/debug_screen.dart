@@ -25,7 +25,7 @@ class DebugScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Developer debug')),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(14),
         children: [
           SectionCard(
             child: Column(

@@ -75,7 +75,7 @@ class _PostcodeBlocklistTileState extends State<PostcodeBlocklistTile> {
     final count = config.blockedPrefixes.length;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -83,7 +83,7 @@ class _PostcodeBlocklistTileState extends State<PostcodeBlocklistTile> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               RuleIcon(icon: Icons.block, active: config.enabled, color: const Color(0xFFE5484D)),
-              const SizedBox(width: 12),
+              const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -100,23 +100,23 @@ class _PostcodeBlocklistTileState extends State<PostcodeBlocklistTile> {
                 ),
               ),
               if (config.enabled && count > 0) ...[
-                const SizedBox(width: 8),
+                const SizedBox(width: 6),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: theme.colorScheme.primary.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(16),
                   ),
                   child: Text(
                     '$count blocked',
                     style: TextStyle(
                         color: theme.colorScheme.primary,
                         fontWeight: FontWeight.w800,
-                        fontSize: 12),
+                        fontSize: 11),
                   ),
                 ),
               ],
-              const SizedBox(width: 4),
+              const SizedBox(width: 2),
               Switch(
                 value: config.enabled,
                 onChanged: (enabled) =>
@@ -130,7 +130,7 @@ class _PostcodeBlocklistTileState extends State<PostcodeBlocklistTile> {
             alignment: Alignment.topCenter,
             child: config.enabled
                 ? Padding(
-                    padding: const EdgeInsets.only(top: 10, left: 52),
+                    padding: const EdgeInsets.only(top: 8, left: 44),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -149,10 +149,10 @@ class _PostcodeBlocklistTileState extends State<PostcodeBlocklistTile> {
                           onSubmitted: _addPrefix,
                         ),
                         if (config.blockedPrefixes.isNotEmpty) ...[
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 8),
                           Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
+                            spacing: 6,
+                            runSpacing: 6,
                             children: [
                               for (final prefix in config.blockedPrefixes)
                                 Chip(

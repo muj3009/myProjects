@@ -61,12 +61,12 @@ class AppTheme {
         },
       ),
       textTheme: const TextTheme(
-        headlineLarge: TextStyle(fontFamily: fontFamily, fontSize: 36, fontWeight: FontWeight.w800, letterSpacing: -0.5, height: 1.1),
-        headlineMedium: TextStyle(fontFamily: fontFamily, fontSize: 28, fontWeight: FontWeight.w800, letterSpacing: -0.3),
-        titleLarge: TextStyle(fontFamily: fontFamily, fontSize: 20, fontWeight: FontWeight.w700),
-        bodyLarge: TextStyle(fontFamily: fontFamily, fontSize: 17),
-        bodyMedium: TextStyle(fontFamily: fontFamily, fontSize: 15),
-        labelLarge: TextStyle(fontFamily: fontFamily, fontSize: 16, fontWeight: FontWeight.w600),
+        headlineLarge: TextStyle(fontFamily: fontFamily, fontSize: 30, fontWeight: FontWeight.w800, letterSpacing: -0.5, height: 1.1),
+        headlineMedium: TextStyle(fontFamily: fontFamily, fontSize: 23, fontWeight: FontWeight.w800, letterSpacing: -0.3),
+        titleLarge: TextStyle(fontFamily: fontFamily, fontSize: 17, fontWeight: FontWeight.w700),
+        bodyLarge: TextStyle(fontFamily: fontFamily, fontSize: 15),
+        bodyMedium: TextStyle(fontFamily: fontFamily, fontSize: 13),
+        labelLarge: TextStyle(fontFamily: fontFamily, fontSize: 14, fontWeight: FontWeight.w600),
       ),
       // Fully-rounded "pill" shape (not just a soft rectangle) for the
       // primary CTA — a driver's two most important taps (Start/Stop
@@ -77,8 +77,8 @@ class AppTheme {
       // everywhere else falls back to the accent blue below.
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          minimumSize: const Size.fromHeight(64),
-          textStyle: const TextStyle(fontFamily: fontFamily, fontSize: 18, fontWeight: FontWeight.w700, letterSpacing: 0.2),
+          minimumSize: const Size.fromHeight(52),
+          textStyle: const TextStyle(fontFamily: fontFamily, fontSize: 16, fontWeight: FontWeight.w700, letterSpacing: 0.2),
           shape: const StadiumBorder(),
           elevation: 2,
           shadowColor: colorScheme.primary.withValues(alpha: 0.3),
@@ -86,8 +86,8 @@ class AppTheme {
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          minimumSize: const Size.fromHeight(56),
-          textStyle: const TextStyle(fontFamily: fontFamily, fontSize: 16, fontWeight: FontWeight.w600),
+          minimumSize: const Size.fromHeight(46),
+          textStyle: const TextStyle(fontFamily: fontFamily, fontSize: 14, fontWeight: FontWeight.w600),
           shape: const StadiumBorder(),
           side: BorderSide(color: colorScheme.outlineVariant, width: 1.5),
         ),
@@ -102,7 +102,7 @@ class AppTheme {
         elevation: 0,
         color: isDark ? const Color(0xFF17181C) : Colors.white,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(16),
           side: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: isDark ? 0.4 : 0.7)),
         ),
         margin: EdgeInsets.zero,
@@ -121,7 +121,7 @@ class AppTheme {
         actionsIconTheme: const IconThemeData(color: Colors.white),
         titleTextStyle: const TextStyle(
           fontFamily: fontFamily,
-          fontSize: 23,
+          fontSize: 19,
           fontWeight: FontWeight.w800,
           letterSpacing: -0.3,
           color: Colors.white,
@@ -130,8 +130,8 @@ class AppTheme {
       ),
       listTileTheme: ListTileThemeData(
         iconColor: colorScheme.primary,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
       ),
       dividerTheme: DividerThemeData(color: colorScheme.outlineVariant.withValues(alpha: 0.6), space: 1),
       chipTheme: ChipThemeData(
@@ -142,30 +142,30 @@ class AppTheme {
         secondaryLabelStyle: TextStyle(fontFamily: fontFamily, fontWeight: FontWeight.w800, color: colorScheme.primary),
         side: BorderSide.none,
         shape: const StadiumBorder(),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: isDark ? const Color(0xFF1B1D22) : const Color(0xFFF0F1F4),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide(color: colorScheme.primary, width: 2),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide(color: colorScheme.error, width: 1.5),
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide(color: colorScheme.error, width: 2),
         ),
       ),

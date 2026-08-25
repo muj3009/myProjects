@@ -43,9 +43,9 @@ class _JobsTrendChartState extends State<JobsTrendChart> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Jobs over time', style: theme.textTheme.titleLarge),
-          const SizedBox(height: 16),
+          const SizedBox(height: 10),
           SizedBox(
-            height: 160,
+            height: 140,
             child: BarChart(
               BarChartData(
                 maxY: maxY * 1.2,
@@ -115,9 +115,9 @@ class _JobsTrendChartState extends State<JobsTrendChart> {
               ),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           const Wrap(
-            spacing: 16,
+            spacing: 12,
             runSpacing: 4,
             children: [
               _LegendDot(color: StatusColors.accepted, label: 'Accepted'),

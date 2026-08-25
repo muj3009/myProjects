@@ -14,7 +14,7 @@ class TintedIconCircle extends StatelessWidget {
     super.key,
     required this.icon,
     required this.color,
-    this.diameter = 40,
+    this.diameter = 34,
     this.iconSize,
   });
 
