@@ -31,11 +31,54 @@ import '../simulation/simulation_screen.dart';
 /// when automation is active — the single boldest visual signal on the
 /// screen is now tied directly to the thing a driver actually glances down
 /// to check, not decoration for its own sake.
-class DashboardScreen extends ConsumerWidget {
+class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends ConsumerState<DashboardScreen> with WidgetsBindingObserver {
+  bool _showSetupHighlight = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    // Initial check on first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        ref.read(automationControllerProvider.notifier).refreshAccessibilityStatus();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Re-check accessibility when app resumes (e.g., after returning from settings)
+      ref.read(automationControllerProvider.notifier).refreshAccessibilityStatus();
+    }
+  }
+
+  void _handleStartAutomation(AutomationController controller) {
+    final automation = ref.read(automationControllerProvider);
+    if (!automation.debug.accessibilityConnected) {
+      setState(() => _showSetupHighlight = true);
+    } else {
+      controller.start();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ref = this.ref;
     final automation = ref.watch(automationControllerProvider);
     final settings = ref.watch(settingsControllerProvider);
     final controller = ref.read(automationControllerProvider.notifier);
@@ -100,17 +143,60 @@ class DashboardScreen extends ConsumerWidget {
                       label: 'START AUTOMATION',
                       baseColor: const Color(0xFF5DC122),
                       borderRadius: 16,
-                      onPressed: controller.start,
+                      onPressed: () => _handleStartAutomation(controller),
                     ),
                   if (automation.isSupported && !automation.isActive) ...[
                     const SizedBox(height: 6),
-                    TextButton(
-                      onPressed: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                            builder: (_) => const PermissionsScreen()),
-                      ),
-                      child: const Text('Check permissions / setup'),
-                    ),
+                    // Highlight when user tried to start but accessibility isn't connected
+                    Builder(builder: (context) {
+                      final needsSetup = _showSetupHighlight;
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: needsSetup
+                              ? Theme.of(context).colorScheme.errorContainer
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(12),
+                          border: needsSetup
+                              ? Border.all(color: Theme.of(context).colorScheme.error, width: 2)
+                              : null,
+                        ),
+                        child: TextButton(
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            foregroundColor: needsSetup
+                                ? Theme.of(context).colorScheme.onErrorContainer
+                                : null,
+                          ),
+                          onPressed: () {
+                            setState(() => _showSetupHighlight = false);
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                  builder: (_) => const PermissionsScreen()),
+                            );
+                          },
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (needsSetup) ...[
+                                Icon(Icons.warning_amber_rounded,
+                                    size: 18,
+                                    color: Theme.of(context).colorScheme.onErrorContainer),
+                                const SizedBox(width: 8),
+                              ],
+                              Text(
+                                needsSetup
+                                    ? 'Press here to enable permissions'
+                                    : 'Check permissions / setup',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }),
                   ],
                   const SizedBox(height: 12),
                   if (automation.lastJob != null) ...[

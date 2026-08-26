@@ -54,8 +54,8 @@ class RulesScreen extends ConsumerWidget {
           const SectionHeader('CORE RULE'),
           _FeaturedRuleCard(
             child: ThresholdRuleTile(
-              title: 'Minimum £/mile',
-              subtitle: 'Reject below this.',
+              title: 'Minimum £ per mile',
+              subtitle: 'Core filter — reject any job paying less than this rate. This is your main quality threshold.',
               unitPrefix: '£',
               unitSuffix: '/mi',
               icon: Icons.attach_money,
@@ -73,8 +73,8 @@ class RulesScreen extends ConsumerWidget {
             child: Column(
               children: [
                 ThresholdRuleTile(
-                  title: 'Max pickup',
-                  subtitle: 'Long drives to passenger.',
+                  title: 'Maximum pickup distance',
+                  subtitle: 'Reject jobs where the drive to the passenger is too far. Long pickups waste time and fuel before you even start earning.',
                   unitSuffix: ' $distanceUnitLabel',
                   icon: Icons.social_distance,
                   rule: rules.maximumPickupDistanceMiles,
@@ -84,8 +84,8 @@ class RulesScreen extends ConsumerWidget {
                 ),
                 const _RowDivider(),
                 ThresholdRuleTile(
-                  title: 'Min fare',
-                  subtitle: 'Flat fare floor.',
+                  title: 'Minimum fare',
+                  subtitle: 'Reject jobs below this flat fare amount, regardless of distance or £/mile. Useful for filtering out very short trips that pay poorly.',
                   unitPrefix: '£',
                   icon: Icons.payments_outlined,
                   rule: rules.minimumFare,
@@ -94,8 +94,8 @@ class RulesScreen extends ConsumerWidget {
                 ),
                 const _RowDivider(),
                 ThresholdRuleTile(
-                  title: 'Max trip',
-                  subtitle: 'Reject long trips.',
+                  title: 'Maximum trip distance',
+                  subtitle: 'Reject unusually long trips. Long trips can tie you up far from home with no guarantee of a return fare.',
                   unitSuffix: ' $distanceUnitLabel',
                   icon: Icons.route_outlined,
                   rule: rules.maximumTripDistanceMiles,
@@ -105,8 +105,8 @@ class RulesScreen extends ConsumerWidget {
                 ),
                 const _RowDivider(),
                 ThresholdRuleTile(
-                  title: 'Min hourly',
-                  subtitle: 'When duration known.',
+                  title: 'Minimum hourly rate',
+                  subtitle: 'Only applies when the app provides a duration estimate. Reject jobs where estimated earnings per hour fall below this rate.',
                   unitPrefix: '£',
                   unitSuffix: '/hr',
                   icon: Icons.schedule_outlined,
@@ -123,8 +123,8 @@ class RulesScreen extends ConsumerWidget {
                 ),
                 const _RowDivider(),
                 ThresholdRuleTile(
-                  title: 'Counter near-miss (Bolt)',
-                  subtitle: '% of min £/mi for counter.',
+                  title: 'Counter-offer near-miss (Bolt only)',
+                  subtitle: 'Jobs within this percentage of your minimum £/mile will get a counter-offer instead of being rejected. E.g. 85% of £2.00 = £1.70/mi and above gets a counter.',
                   unitSuffix: '%',
                   icon: Icons.swap_horiz,
                   rule: rules.counterOfferBandPercent,
@@ -134,8 +134,8 @@ class RulesScreen extends ConsumerWidget {
                 ),
                 const _RowDivider(),
                 ThresholdRuleTile(
-                  title: 'Auto counter low (Bolt)',
-                  subtitle: 'Below this gets max counter.',
+                  title: 'Auto counter-offer low fares (Bolt only)',
+                  subtitle: 'Any Bolt job below this fare amount automatically gets your maximum counter-offer instead of being rejected. Useful for very cheap jobs worth trying for more.',
                   unitPrefix: '£',
                   icon: Icons.local_offer_outlined,
                   rule: rules.lowFareCounterOfferThreshold,
@@ -150,8 +150,8 @@ class RulesScreen extends ConsumerWidget {
                 ),
                 const _RowDivider(),
                 ThresholdRuleTile(
-                  title: 'Relax £/mi when quiet',
-                  subtitle: 'Below 8 jobs/5min.',
+                  title: 'Relax £/mile when quiet',
+                  subtitle: 'When fewer than 8 jobs appear in 5 minutes (quiet period), temporarily lower your minimum £/mile to this value. Never raises above your normal minimum.',
                   unitPrefix: '£',
                   unitSuffix: '/mi',
                   icon: Icons.nightlight_outlined,
@@ -289,26 +289,26 @@ class _RulesHeroBody extends StatelessWidget {
   Widget build(BuildContext context) {
     final active = <String>[
       if (rules.minimumPoundsPerMile.enabled)
-        '£${rules.minimumPoundsPerMile.value.toStringAsFixed(2)}/mi min',
+        'Min £/mi: £${rules.minimumPoundsPerMile.value.toStringAsFixed(2)}',
       if (rules.maximumPickupDistanceMiles.enabled)
-        'Max ${rules.maximumPickupDistanceMiles.value.toStringAsFixed(1)} $distanceUnitLabel pickup',
+        'Max pickup: ${rules.maximumPickupDistanceMiles.value.toStringAsFixed(1)} $distanceUnitLabel',
       if (rules.minimumFare.enabled)
-        '£${rules.minimumFare.value.toStringAsFixed(2)} min fare',
+        'Min fare: £${rules.minimumFare.value.toStringAsFixed(2)}',
       if (rules.maximumTripDistanceMiles.enabled)
-        'Max ${rules.maximumTripDistanceMiles.value.toStringAsFixed(1)} $distanceUnitLabel trip',
+        'Max trip: ${rules.maximumTripDistanceMiles.value.toStringAsFixed(1)} $distanceUnitLabel',
       if (rules.minimumHourlyRate.enabled)
-        '£${rules.minimumHourlyRate.value.toStringAsFixed(2)}/hr min',
+        'Min hourly: £${rules.minimumHourlyRate.value.toStringAsFixed(2)}/hr',
       if (rules.postcodeBlocklist.enabled && rules.postcodeBlocklist.blockedPrefixes.isNotEmpty)
         '${rules.postcodeBlocklist.blockedPrefixes.length} area'
             '${rules.postcodeBlocklist.blockedPrefixes.length == 1 ? '' : 's'} blocked',
       if (rules.counterOfferBandPercent.enabled)
-        'Counter at ${rules.counterOfferBandPercent.value.toStringAsFixed(0)}%',
+        'Counter near-miss: ${rules.counterOfferBandPercent.value.toStringAsFixed(0)}%',
       if (rules.lowFareCounterOfferThreshold.enabled)
         'Auto counter under £${rules.lowFareCounterOfferThreshold.value.toStringAsFixed(2)}',
       if (rules.highValueJob.enabled)
-        '£${rules.highValueJob.fareFloor.toStringAsFixed(0)}+ at £${rules.highValueJob.acceptRateFloor.toStringAsFixed(2)}/mi auto',
+        'High-value: £${rules.highValueJob.fareFloor.toStringAsFixed(0)}+ @ £${rules.highValueJob.acceptRateFloor.toStringAsFixed(2)}/mi',
       if (rules.quietTimeMinimumPoundsPerMile.enabled)
-        'Quiet min £${rules.quietTimeMinimumPoundsPerMile.value.toStringAsFixed(2)}/mi',
+        'Quiet min: £${rules.quietTimeMinimumPoundsPerMile.value.toStringAsFixed(2)}/mi',
     ];
 
     return Column(

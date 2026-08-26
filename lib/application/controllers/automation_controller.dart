@@ -164,6 +164,19 @@ class AutomationController extends StateNotifier<AutomationState> {
     AppLogger.instance.info(_tag, 'Automation started');
   }
 
+  /// Re-checks accessibility service status and updates the state.
+  /// Call this when the user may have enabled the service (e.g., after returning from permissions screen).
+  Future<void> refreshAccessibilityStatus() async {
+    final accessibilityStatus = await _channel.getAccessibilityStatus();
+    final connected = accessibilityStatus == AccessibilityStatus.enabled;
+    if (connected != state.debug.accessibilityConnected) {
+      state = state.copyWith(
+        debug: state.debug.copyWith(accessibilityConnected: connected),
+        statusMessage: connected ? 'Ready to start' : 'Accessibility Service is not enabled — open Permissions to set up.',
+      );
+    }
+  }
+
   /// Spec section 19 — emergency stop. Cancels the event subscription
   /// immediately so no further detected text can trigger an action, then
   /// tells the native side to stop the foreground service.

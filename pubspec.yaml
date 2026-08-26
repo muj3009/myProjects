@@ -71,11 +71,9 @@ flutter:
         - asset: assets/fonts/Manrope-Variable.ttf
           weight: 800
 
-# Driver-supplied artwork, pre-composited by tool/generate_icons.dart onto
-# properly padded/backgrounded square canvases (the source photo wasn't
-# square, centered, or safe-zone padded for either target as supplied).
 flutter_launcher_icons:
   android: true
+  ios: false
   image_path: "assets/icons/app_icon_legacy.png"
   adaptive_icon_background: "#FFFFFF"
   adaptive_icon_foreground: "assets/icons/app_icon_foreground.png"

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ic_launcher_background">#FFFFFF</color>
+    <color name="ic_launcher_background">#182535</color>
     <!-- Matches AppTheme.light's scaffoldBackgroundColor (0xFFF6F7F9) — see
          drawable/launch_background.xml for why the splash screen needs this
          instead of plain white. -->

@@ -4,12 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../../domain/entities/rule_config.dart';
-import 'threshold_rule_tile.dart' show RuleIcon, ScrollableSubtitle;
+import 'threshold_rule_tile.dart' show RuleIcon, ScrollableSubtitle, ValueBadge;
 
 /// Rule Builder row for [HighValueJobOverride] — same compact-when-off,
-/// expand-when-on pattern as [ThresholdRuleTile], but with two independent
-/// values (a fare floor and a £/mile floor) instead of one, so it doesn't
-/// fit that widget's single-value shape.
+/// expand-when-on pattern as [ThresholdRuleTile], but with three independent
+/// values (fare floor, accept rate floor, counter-offer rate floor) instead of one.
 class HighValueJobTile extends StatefulWidget {
   const HighValueJobTile({
     super.key,
@@ -64,8 +63,6 @@ class _HighValueJobTileState extends State<HighValueJobTile> {
 
   @override
   void dispose() {
-    // Flush any pending edit rather than silently drop it — see the
-    // matching comment in ThresholdRuleTile.dispose.
     if (_fareDebounce?.isActive ?? false) {
       _fareDebounce!.cancel();
       _commitFareNow(_fareController.text);
@@ -84,9 +81,6 @@ class _HighValueJobTileState extends State<HighValueJobTile> {
     super.dispose();
   }
 
-  // Debounced for the same reason as ThresholdRuleTile._commit — every
-  // keystroke used to flow straight through to a full settings rebuild plus
-  // a SQLite write of the entire settings object.
   void _commitFare(String raw) {
     _fareDebounce?.cancel();
     _fareDebounce = Timer(_debounceDelay, () => _commitFareNow(raw));
@@ -125,6 +119,9 @@ class _HighValueJobTileState extends State<HighValueJobTile> {
     final config = widget.config;
     final theme = Theme.of(context);
 
+    final badgeText =
+        '£${config.fareFloor.toStringAsFixed(0)}+ · Acc≥£${config.acceptRateFloor.toStringAsFixed(2)} · Ctr≥£${config.counterOfferRateFloor.toStringAsFixed(2)}';
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       child: Column(
@@ -148,26 +145,16 @@ class _HighValueJobTileState extends State<HighValueJobTile> {
                     ),
                     const SizedBox(height: 2),
                     const ScrollableSubtitle(
-                      'Accept immediately above both floors, counter-offer in the band below — ignores your '
-                      'other rules (except the blocklist).',
+                      'Auto-accept high-fare jobs above both rate floors (ignores other rules except blocklist). '
+                      'Between counter & accept floors → counter-offer (Bolt). Below counter floor → normal rules. '
+                      'Fare below floor → normal rules.',
                     ),
                   ],
                 ),
               ),
               if (config.enabled) ...[
                 const SizedBox(width: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: _color.withValues(alpha: 0.14),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Text(
-                    '£${config.fareFloor.toStringAsFixed(0)}+ · £${config.acceptRateFloor.toStringAsFixed(2)}/mi '
-                    '· ctr £${config.counterOfferRateFloor.toStringAsFixed(2)}+',
-                    style: const TextStyle(color: _color, fontWeight: FontWeight.w800, fontSize: 11),
-                  ),
-                ),
+                ValueBadge(text: badgeText, color: _color),
               ],
               const SizedBox(width: 2),
               Switch(
@@ -198,7 +185,7 @@ class _HighValueJobTileState extends State<HighValueJobTile> {
                                 decoration: const InputDecoration(
                                   isDense: true,
                                   prefixText: '£',
-                                  labelText: 'Fare ≥',
+                                  labelText: 'Fare floor (≥)',
                                 ),
                                 onChanged: _commitFare,
                               ),
@@ -215,7 +202,7 @@ class _HighValueJobTileState extends State<HighValueJobTile> {
                                   isDense: true,
                                   prefixText: '£',
                                   suffixText: '/mi',
-                                  labelText: 'Accept ≥',
+                                  labelText: 'Accept rate floor (≥)',
                                 ),
                                 onChanged: _commitRate,
                               ),
@@ -236,7 +223,7 @@ class _HighValueJobTileState extends State<HighValueJobTile> {
                                   isDense: true,
                                   prefixText: '£',
                                   suffixText: '/mi',
-                                  labelText: 'Counter-offer ≥',
+                                  labelText: 'Counter rate floor (≥)',
                                 ),
                                 onChanged: _commitCounterOfferRate,
                               ),

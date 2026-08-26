@@ -171,7 +171,7 @@ class _ThresholdRuleTileState extends State<ThresholdRuleTile> {
               // wrapping mid-word.
               if (rule.enabled && !widget.emphasized) ...[
                 const SizedBox(width: 6),
-                _ValueBadge(text: valueText),
+                ValueBadge(text: valueText),
               ],
               const SizedBox(width: 2),
               Switch(
@@ -225,17 +225,57 @@ class ScrollableSubtitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Text(
-        text,
-        maxLines: 1,
-        softWrap: false,
-        style: Theme.of(context)
-            .textTheme
-            .bodyMedium
-            ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
-      ),
+    return Stack(
+      children: [
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Padding(
+            padding: const EdgeInsets.only(right: 60),
+            child: Text(
+              text,
+              maxLines: 1,
+              softWrap: false,
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyMedium
+                  ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+            ),
+          ),
+        ),
+        Positioned(
+          right: 0,
+          top: 0,
+          bottom: 0,
+          child: IgnorePointer(
+            child: Container(
+              width: 60,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                  colors: [
+                    Theme.of(context).cardTheme.color!.withValues(alpha: 0),
+                    Theme.of(context).cardTheme.color!.withValues(alpha: 0.3),
+                    Theme.of(context).cardTheme.color!,
+                  ],
+                  stops: const [0.0, 0.5, 1.0],
+                ),
+              ),
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: Icon(
+                    Icons.chevron_right,
+                    size: 24,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.9),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -244,14 +284,15 @@ class ScrollableSubtitle extends StatelessWidget {
 /// lets a driver confirm "is this set to what I think it's set to" without
 /// expanding every row, the way the always-visible input field used to
 /// require.
-class _ValueBadge extends StatelessWidget {
-  const _ValueBadge({required this.text});
+class ValueBadge extends StatelessWidget {
+  const ValueBadge({required this.text, this.color});
 
   final String text;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
-    final primary = Theme.of(context).colorScheme.primary;
+    final primary = color ?? Theme.of(context).colorScheme.primary;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
