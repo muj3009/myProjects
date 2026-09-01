@@ -241,28 +241,44 @@ class AutomationMethodChannelHandler(
             return
         }
         val anchorKeywords = if (cardAnchor.isNullOrBlank()) CARD_ANCHOR_KEYWORDS else listOf(cardAnchor)
+        
+        // Track if we've already sent a response to prevent multiple replies
+        var responseSent = false
+        
+        // Try swipe LEFT first (reject)
         service.swipeJobCard(JobAccessibilityService.SwipeDirection.LEFT, anchorKeywords) { swiped ->
             if (swiped) {
-                result.success(true)
+                android.util.Log.d("JobFilterSwipe", "rejectJob: swipe LEFT succeeded")
+                if (!responseSent) {
+                    responseSent = true
+                    result.success(true)
+                }
                 return@swipeJobCard
             }
+            android.util.Log.d("JobFilterSwipe", "rejectJob: swipe LEFT failed, trying Reject button keywords")
+            // Try finding Reject/Decline button by keywords
             if (service.findAndClickButtonByKeywords(REJECT_KEYWORDS)) {
-                result.success(true)
+                android.util.Log.d("JobFilterSwipe", "rejectJob: Reject button tapped via keywords")
+                if (!responseSent) {
+                    responseSent = true
+                    result.success(true)
+                }
                 return@swipeJobCard
             }
-            // Neither the swipe nor a directly-visible Decline button
-            // worked — open the card (same mechanism as acceptJob) and look
-            // for Decline inside the detail view it reveals.
+            android.util.Log.d("JobFilterSwipe", "rejectJob: Reject button keywords failed, trying to open card and tap Reject")
+            // Neither the swipe nor a directly-visible Decline button worked — open the card and look for Decline inside
             val anchor = if (cardAnchor.isNullOrBlank()) CARD_ANCHOR_KEYWORDS.first() else cardAnchor
             service.tapCardThenButton(anchor, REJECT_KEYWORDS) { tapped ->
-                // See [JobAccessibilityService.invalidateLastEmittedText] —
-                // a real device showed dispatchGesture report success while
-                // Bolt never actually registered the swipe, and both
-                // fallbacks then also missing. Without this, that
-                // still-visible, still-actionable card would never be
-                // looked at again.
                 if (!tapped) service.invalidateLastEmittedText()
-                result.success(tapped)
+                if (tapped) {
+                    android.util.Log.d("JobFilterSwipe", "rejectJob: Reject button tapped in detail view")
+                } else {
+                    android.util.Log.e("JobFilterSwipe", "rejectJob: ALL METHODS FAILED - could not reject job")
+                }
+                if (!responseSent) {
+                    responseSent = true
+                    result.success(tapped)
+                }
             }
         }
     }

@@ -141,7 +141,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> with WidgetsB
                     GradientButton(
                       icon: Icons.play_circle_outline,
                       label: 'START AUTOMATION',
-                      baseColor: const Color(0xFF5DC122),
+                      baseColor: Color.lerp(AppTheme.ink, StatusColors.accepted, 0.55)!,
                       borderRadius: 16,
                       onPressed: () => _handleStartAutomation(controller),
                     ),

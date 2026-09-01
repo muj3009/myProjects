@@ -694,6 +694,8 @@ class AutomationController extends StateNotifier<AutomationState> {
       if (shouldRecordFingerprint) {
         _fingerprints.record(fingerprint);
       }
+      // Clear the last emitted text so the next detection will be emitted even if text is identical
+      _channel.clearLastEmittedText();
 
       await _jobRepository.save(recordedJob);
 

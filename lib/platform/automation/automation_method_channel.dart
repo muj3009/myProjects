@@ -269,4 +269,10 @@ class AutomationMethodChannel {
       AppLogger.instance.warning(_tag, '$method failed: $e');
     }
   }
+
+  /// Clears the last emitted text in the accessibility service so the next
+  /// detection will be emitted even if the text is identical to a previous detection.
+  Future<void> clearLastEmittedText() async {
+    await _invokeVoid('clearLastEmittedText');
+  }
 }

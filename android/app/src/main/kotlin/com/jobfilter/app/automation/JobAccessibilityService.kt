@@ -323,6 +323,11 @@ class JobAccessibilityService : AccessibilityService() {
         }
     }
 
+    /** Clears the last emitted text so the next detection will be emitted even if text is identical. */
+    fun clearLastEmittedText() {
+        lastEmittedText = null
+    }
+
     private fun extractText(
         node: AccessibilityNodeInfo,
         builder: StringBuilder = StringBuilder(),

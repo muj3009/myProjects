@@ -83,6 +83,20 @@ class BoltJobParser implements JobParser {
   // the idle dashboard has no distance figure to spuriously match, so no
   // replacement exclusion is needed here.
 
+  // Exclude the earnings/dashboard summary screen — it shows "Today's
+  // earnings" with a fare-like figure and "Available trips" keyword, but
+  // no actual pickup/trip distances. Without this exclusion, the dashboard
+  // summary gets misread as a live job offer because it has a fare-like
+  // figure and the "available trips" keyword.
+  static const _dashboardExclusionPhrases = [
+    'today\'s earning',
+    'today\'s earnings',
+    'this week\'s earning',
+    'this week\'s earnings',
+    'total earning',
+    'total earnings',
+  ];
+
   // Real device screens showed multiple simultaneous offers ("Available
   // trips" listing more than one card at once). Each card starts with this
   // ride-type badge on its own line, so splitting here is what lets every
@@ -126,7 +140,8 @@ class BoltJobParser implements JobParser {
         distances.isNotEmpty &&
         _jobCardKeywords.any(lower.contains) &&
         !_historyScreenExclusionPhrases.any(lower.contains) &&
-        !_expiredCardExclusionPhrases.any(lower.contains);
+        !_expiredCardExclusionPhrases.any(lower.contains) &&
+        !_dashboardExclusionPhrases.any(lower.contains);
     // Not `extractDurationMinutes` (single first-match) — Bolt's card shows
     // pickup duration before trip duration the same way Uber's does, so
     // taking the first match alone fed only the pickup leg's minutes into
