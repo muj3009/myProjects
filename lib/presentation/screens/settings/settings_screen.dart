@@ -5,11 +5,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../application/state/job_history_controller.dart';
 import '../../../application/state/navigation_controller.dart';
 import '../../../application/state/settings_controller.dart';
-import '../../../core/constants/app_constants.dart';
 import '../../../domain/enums/distance_unit.dart';
 import '../../../domain/enums/platform_type.dart';
 import '../../widgets/hero_header.dart';
 import '../../widgets/section_card.dart';
+import '../../widgets/section_header.dart';
 import '../../widgets/tinted_icon_circle.dart';
 import '../permissions/permissions_screen.dart';
 import '../simulation/simulation_screen.dart';
@@ -19,8 +19,6 @@ import '../simulation/simulation_screen.dart';
 /// setup, Simulation Mode.
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
-
-  static const _quickPresets = [1.50, 1.75, 2.00, 2.25, 2.50, 3.00];
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -86,132 +84,109 @@ class SettingsScreen extends ConsumerWidget {
               child: ListView(
         padding: const EdgeInsets.fromLTRB(8, 4, 8, 8),
         children: [
-          Text('Minimum £/mi', style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 2),
+          const SectionHeader('PREFERENCES'),
           SectionCard(
-            padding: const EdgeInsets.all(6),
+            padding: const EdgeInsets.symmetric(vertical: 1),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  '£${minRule.value.toStringAsFixed(2)}',
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontSize: 22),
-                ),
-                const SizedBox(height: 2),
-                Wrap(
-                  spacing: 3,
-                  runSpacing: 3,
-                  children: [
-                    for (final preset in _quickPresets)
-                      ChoiceChip(
-                        label: Text('£${preset.toStringAsFixed(2)}'),
-                        selected: (minRule.value - preset).abs() < 0.001,
-                        onSelected: (_) => controller.update(
-                          (s) => s.copyWith(
-                            rules: s.rules.copyWith(
-                              minimumPoundsPerMile: minRule.copyWith(
-                                  value: preset, enabled: true),
-                            ),
+                _PreferenceSelectorRow(
+                  title: 'Platform',
+                  icon: Icons.local_taxi_outlined,
+                  child: Wrap(
+                    spacing: 4,
+                    runSpacing: 4,
+                    children: [
+                      for (final platform in [
+                        PlatformSelection.uber,
+                        PlatformSelection.bolt,
+                        PlatformSelection.both
+                      ]) ...[
+                        ChoiceChip(
+                          avatar: TintedIconCircle(
+                            icon: _iconForPlatform(platform),
+                            color: _colorForPlatform(platform),
+                            diameter: 16,
+                            iconSize: 9,
                           ),
+                          showCheckmark: true,
+                          checkmarkColor: Colors.white,
+                          selectedColor: _colorForPlatform(platform),
+                          label: Text(_labelForPlatform(platform)),
+                          selected: settings.platformSelection == platform,
+                          onSelected: (_) => controller.update(
+                            (s) => s.copyWith(platformSelection: platform),
+                          ),
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
                         ),
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 2),
-                TextButton(
-                  style: TextButton.styleFrom(
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      ],
+                    ],
                   ),
-                  onPressed: () => _showCustomValueDialog(
-                      context, controller, minRule.value),
-                  child: const Text('Custom'),
+                ),
+                const _SettingsDivider(),
+                _PreferenceSelectorRow(
+                  title: 'Distance',
+                  icon: Icons.straighten,
+                  child: Wrap(
+                    spacing: 4,
+                    runSpacing: 4,
+                    children: [
+                      for (final unit in [
+                        DistanceUnit.miles,
+                        DistanceUnit.kilometres,
+                      ]) ...[
+                        ChoiceChip(
+                          label: Text(_labelForDistance(unit)),
+                          selected: settings.distanceUnit == unit,
+                          selectedColor: Theme.of(context)
+                              .colorScheme
+                              .primary
+                              .withValues(alpha: 0.18),
+                          onSelected: (_) => controller.update(
+                            (s) => s.copyWith(distanceUnit: unit),
+                          ),
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                const _SettingsDivider(),
+                _PreferenceSelectorRow(
+                  title: 'Theme',
+                  icon: Icons.dark_mode_outlined,
+                  child: Wrap(
+                    spacing: 4,
+                    runSpacing: 4,
+                    children: [
+                      for (final mode in [
+                        ThemeMode.system,
+                        ThemeMode.light,
+                        ThemeMode.dark
+                      ]) ...[
+                        ChoiceChip(
+                          label: Text(_labelForTheme(mode)),
+                          selected: settings.themeMode == mode,
+                          selectedColor: Theme.of(context)
+                              .colorScheme
+                              .primary
+                              .withValues(alpha: 0.18),
+                          onSelected: (_) => controller.update(
+                            (s) => s.copyWith(themeMode: mode),
+                          ),
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
           const SizedBox(height: 6),
-          Text('Platform', style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 2),
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: [
-              for (final platform in [
-                PlatformSelection.uber,
-                PlatformSelection.bolt,
-                PlatformSelection.both
-              ]) ...[
-                ChoiceChip(
-                  avatar: TintedIconCircle(
-                    icon: _iconForPlatform(platform),
-                    color: _colorForPlatform(platform),
-                    diameter: 18,
-                    iconSize: 10,
-                  ),
-                  showCheckmark: true,
-                  checkmarkColor: Colors.white,
-                  selectedColor: _colorForPlatform(platform),
-                  label: Text(_labelForPlatform(platform)),
-                  selected: settings.platformSelection == platform,
-                  onSelected: (_) => controller.update(
-                    (s) => s.copyWith(platformSelection: platform),
-                  ),
-                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-              ],
-            ],
-          ),
-          const SizedBox(height: 6),
-          Text('Distance', style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 2),
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: [
-              for (final unit in [
-                DistanceUnit.miles,
-                DistanceUnit.kilometres,
-              ]) ...[
-                ChoiceChip(
-                  label: Text(_labelForDistance(unit)),
-                  selected: settings.distanceUnit == unit,
-                  selectedColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.18),
-                  onSelected: (_) => controller.update(
-                    (s) => s.copyWith(distanceUnit: unit),
-                  ),
-                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-              ],
-            ],
-          ),
-          const SizedBox(height: 6),
-          Text('Theme', style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 2),
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: [
-              for (final mode in [
-                ThemeMode.system,
-                ThemeMode.light,
-                ThemeMode.dark
-              ]) ...[
-                ChoiceChip(
-                  label: Text(_labelForTheme(mode)),
-                  selected: settings.themeMode == mode,
-                  selectedColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.18),
-                  onSelected: (_) => controller.update(
-                    (s) => s.copyWith(themeMode: mode),
-                  ),
-                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-              ],
-            ],
-          ),
-          const SizedBox(height: 6),
+          const SectionHeader('LINKS'),
           SectionCard(
             padding: const EdgeInsets.symmetric(vertical: 1),
             child: Column(
@@ -221,7 +196,8 @@ class SettingsScreen extends ConsumerWidget {
                   title: 'Advanced rules',
                   subtitle: 'Pickup, min fare, hourly rate, etc.',
                   onTap: () =>
-                      ref.read(rootNavigationIndexProvider.notifier).state = 3,
+                      ref.read(rootNavigationIndexProvider.notifier).state =
+                          RootTabs.rules,
                 ),
                 const Divider(height: 1, indent: 44),
                 _SettingsLinkTile(
@@ -240,7 +216,7 @@ class SettingsScreen extends ConsumerWidget {
               ],
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 10),
           OutlinedButton.icon(
             style: OutlinedButton.styleFrom(
               foregroundColor: Theme.of(context).colorScheme.error,
@@ -254,54 +230,6 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _showCustomValueDialog(
-    BuildContext context,
-    SettingsController controller,
-    double current,
-  ) async {
-    final textController =
-        TextEditingController(text: current.toStringAsFixed(2));
-    final result = await showDialog<double>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Custom minimum £/mile'),
-        content: TextField(
-          controller: textController,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          decoration: const InputDecoration(prefixText: '£'),
-          autofocus: true,
-        ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel')),
-          FilledButton(
-            onPressed: () {
-              final value = double.tryParse(textController.text);
-              Navigator.pop(context, value);
-            },
-            child: const Text('Save'),
-          ),
-        ],
-      ),
-    );
-
-    if (result == null ||
-        result < AppConstants.minAllowedPoundsPerMile ||
-        result > AppConstants.maxAllowedPoundsPerMile) {
-      return;
-    }
-
-    await controller.update(
-      (s) => s.copyWith(
-        rules: s.rules.copyWith(
-          minimumPoundsPerMile: s.rules.minimumPoundsPerMile
-              .copyWith(value: result, enabled: true),
         ),
       ),
     );
@@ -360,4 +288,59 @@ class _SettingsLinkTile extends StatelessWidget {
       onTap: onTap,
     );
   }
+}
+
+/// A single grouped preference inset inside the PREFERENCES card — a small
+/// caption row (label + tinted icon) followed by its selector chips. Keeps
+/// each selector dense and visually bounded, matching the grouped-list style
+/// the Rules and Dashboard pages use, instead of a loose label floating in
+/// whitespace.
+class _PreferenceSelectorRow extends StatelessWidget {
+  const _PreferenceSelectorRow({
+    required this.title,
+    required this.icon,
+    required this.child,
+  });
+
+  final String title;
+  final IconData icon;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          TintedIconCircle(icon: icon, color: primary, diameter: 24, iconSize: 13),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title,
+                    style: const TextStyle(
+                        fontSize: 13, fontWeight: FontWeight.w600)),
+                const SizedBox(height: 6),
+                child,
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A thin horizontal separator for use between grouped rows. Rather than wrap
+/// every row in its own [Card], consecutive rows share a single card with a
+/// [Divider] — the same treatment the Rules and Dashboard Settings links use.
+class _SettingsDivider extends StatelessWidget {
+  const _SettingsDivider();
+
+  @override
+  Widget build(BuildContext context) =>
+      const Divider(height: 1, indent: 44, endIndent: 8);
 }

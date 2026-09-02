@@ -123,7 +123,7 @@ class _HighValueJobTileState extends State<HighValueJobTile> {
         '£${config.fareFloor.toStringAsFixed(0)}+ · Acc≥£${config.acceptRateFloor.toStringAsFixed(2)} · Ctr≥£${config.counterOfferRateFloor.toStringAsFixed(2)}';
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -169,7 +169,7 @@ class _HighValueJobTileState extends State<HighValueJobTile> {
             alignment: Alignment.topCenter,
             child: config.enabled
                 ? Padding(
-                    padding: const EdgeInsets.only(top: 8, left: 44),
+                    padding: const EdgeInsets.only(top: 6, left: 38),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [

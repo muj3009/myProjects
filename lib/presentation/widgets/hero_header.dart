@@ -2,44 +2,56 @@ import 'package:flutter/material.dart';
 
 import '../../core/theme/app_theme.dart';
 
-/// The full-bleed, rounded-bottom dark gradient zone every top-level tab
-/// screen opens with — replaces a plain AppBar plus whatever card used to
-/// sit below it. Extracted from the Dashboard's hero (the first screen to
-/// get this treatment) so Jobs, Statistics, Rules, and Settings all share
-/// the exact same shape/gradient mechanics instead of four near-identical
-/// copies. Each screen supplies its own [child] content (title, stats,
-/// pickers, whatever that screen's hero needs to say).
+/// The full-bleed dark header zone every top-level tab screen opens with —
+/// replaces a plain AppBar plus whatever card used to sit below it.
+/// Extracted from the Dashboard's hero (the first screen to get this
+/// treatment) so Jobs, Statistics, Rules, and Settings all share the exact
+/// same shape/colour mechanics instead of four near-identical copies. Each
+/// screen supplies its own [child] content (title, stats, pickers, whatever
+/// that screen's hero needs to say).
+///
+/// The panel is deliberately *architectural*, not decorative: it runs
+/// full-width and flush with the top of the screen, has square (not curved)
+/// bottom corners so the content below sits snug against it, and is capped
+/// by a slim [accentColor] underline. That reads as one solid, well-defined
+/// zone rather than a floating rounded card — a driver glancing at the phone
+/// should see a clear, closed header, not an open gap where it meets the
+/// page.
 class HeroHeader extends StatelessWidget {
   const HeroHeader({super.key, required this.child, this.accentColor});
 
   final Widget child;
 
-  /// The color the gradient shifts toward — null keeps the header a plain
-  /// ink-to-brand-blue wash; pass a state color (e.g. green when something
-  /// is actively running) to tie the boldest visual signal on the screen to
-  /// that state, the way the Dashboard's hero does.
+  /// The colour of the hairline at the panel's bottom edge — null uses the
+  /// brand blue. Pass a state colour (e.g. green when something is actively
+  /// running) to tie the boldest signal on the screen to that state, the way
+  /// the Dashboard's hero does.
   final Color? accentColor;
 
   @override
   Widget build(BuildContext context) {
+    final accent = accentColor ?? AppTheme.accentBlue;
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.fromLTRB(12, MediaQuery.of(context).padding.top + 6, 12, 10),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppTheme.ink,
-            Color.lerp(AppTheme.ink, accentColor ?? AppTheme.accentBlue, accentColor != null ? 0.5 : 0.35)!,
-          ],
-        ),
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(18),
-          bottomRight: Radius.circular(18),
-        ),
+      color: AppTheme.ink,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: EdgeInsets.fromLTRB(
+                16,
+                MediaQuery.of(context).padding.top + 8,
+                16,
+                14),
+            child: child,
+          ),
+          // A crisp accent underline that "closes" the panel and gives it a
+          // defined bottom boundary — without it the header would fade into
+          // the page and read as open/unfinished.
+          Container(height: 3, color: accent),
+        ],
       ),
-      child: child,
     );
   }
 }

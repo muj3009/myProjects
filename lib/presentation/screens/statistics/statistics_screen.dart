@@ -30,7 +30,7 @@ class StatisticsScreen extends ConsumerWidget {
       child: Scaffold(
         body: Column(
           children: [
-            HeroHeader(child: _StatsHeroBody(stats: stats)),
+            HeroHeader(child: _StatsHeroBody(stats: stats, range: state.range)),
             Expanded(
               child: RefreshIndicator(
                 onRefresh: controller.refresh,
@@ -61,61 +61,63 @@ class StatisticsScreen extends ConsumerWidget {
                       const SizedBox(height: 4),
                       JobsTrendChart(days: stats.dailyBreakdown),
                     ],
-                    const SizedBox(height: 6),
-                    const SectionHeader('AVERAGES'),
-                    SectionCard(
-                      padding: const EdgeInsets.all(6),
-                      child: StatGrid(
-                        tiles: [
-                          StatTile(
-                            label: 'Avg fare',
-                            value: '£${stats.averageFare.toStringAsFixed(2)}',
-                            icon: Icons.receipt_long_outlined,
-                          ),
-                          StatTile(
-                            label: 'Avg £/mi',
-                            value: '£${stats.averagePoundsPerMile.toStringAsFixed(2)}',
-                            icon: Icons.speed,
-                          ),
-                          StatTile(
-                            label: 'Avg trip',
-                            value: '${stats.averageTripDistanceMiles.toStringAsFixed(1)}mi',
-                            icon: Icons.route_outlined,
-                          ),
-                          StatTile(
-                            label: 'Accept %',
-                            value: '${(stats.acceptanceRate * 100).toStringAsFixed(0)}%',
-                            icon: Icons.thumb_up_outlined,
-                          ),
-                        ],
+                    if (stats.jobsDetected > 0) ...[
+                      const SizedBox(height: 6),
+                      const SectionHeader('AVERAGES'),
+                      SectionCard(
+                        padding: const EdgeInsets.all(6),
+                        child: StatGrid(
+                          tiles: [
+                            StatTile(
+                              label: 'Avg fare',
+                              value: '£${stats.averageFare.toStringAsFixed(2)}',
+                              icon: Icons.receipt_long_outlined,
+                            ),
+                            StatTile(
+                              label: 'Avg £/mi',
+                              value: '£${stats.averagePoundsPerMile.toStringAsFixed(2)}',
+                              icon: Icons.speed,
+                            ),
+                            StatTile(
+                              label: 'Avg trip',
+                              value: '${stats.averageTripDistanceMiles.toStringAsFixed(1)}mi',
+                              icon: Icons.route_outlined,
+                            ),
+                            StatTile(
+                              label: 'Accept %',
+                              value: '${(stats.acceptanceRate * 100).toStringAsFixed(0)}%',
+                              icon: Icons.thumb_up_outlined,
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 6),
-                    const SectionHeader('MONEY'),
-                    SectionCard(
-                      padding: const EdgeInsets.all(6),
-                      child: StatGrid(
-                        tiles: [
-                          StatTile(
-                            label: 'Potential',
-                            value: '£${stats.totalPotentialFare.toStringAsFixed(2)}',
-                            icon: Icons.account_balance_wallet_outlined,
-                          ),
-                          StatTile(
-                            label: 'Accepted',
-                            value: '£${stats.acceptedFare.toStringAsFixed(2)}',
-                            color: StatusColors.accepted,
-                            icon: Icons.check_circle_outline,
-                          ),
-                          StatTile(
-                            label: 'Rejected',
-                            value: '£${stats.rejectedFare.toStringAsFixed(2)}',
-                            color: StatusColors.rejected,
-                            icon: Icons.cancel_outlined,
-                          ),
-                        ],
+                      const SizedBox(height: 6),
+                      const SectionHeader('MONEY'),
+                      SectionCard(
+                        padding: const EdgeInsets.all(6),
+                        child: StatGrid(
+                          tiles: [
+                            StatTile(
+                              label: 'Potential',
+                              value: '£${stats.totalPotentialFare.toStringAsFixed(2)}',
+                              icon: Icons.account_balance_wallet_outlined,
+                            ),
+                            StatTile(
+                              label: 'Accepted',
+                              value: '£${stats.acceptedFare.toStringAsFixed(2)}',
+                              color: StatusColors.accepted,
+                              icon: Icons.check_circle_outline,
+                            ),
+                            StatTile(
+                              label: 'Rejected',
+                              value: '£${stats.rejectedFare.toStringAsFixed(2)}',
+                              color: StatusColors.rejected,
+                              icon: Icons.cancel_outlined,
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
+                    ],
                   ],
                 ),
               ),
@@ -133,13 +135,57 @@ class StatisticsScreen extends ConsumerWidget {
 /// do?" at a glance. Acceptance rate rides alongside as the secondary
 /// figure, since a driver judging their own filter rules cares about both
 /// together, not just one.
-class _StatsHeroBody extends StatelessWidget {
-  const _StatsHeroBody({required this.stats});
+class _StatsHeroBody extends StatefulWidget {
+  const _StatsHeroBody({required this.stats, required this.range});
 
   final JobStatistics stats;
+  final StatsRange range;
+
+  @override
+  State<_StatsHeroBody> createState() => _StatsHeroBodyState();
+}
+
+class _StatsHeroBodyState extends State<_StatsHeroBody>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final Animation<double> _fade;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 450),
+    );
+    _fade = CurvedAnimation(parent: _ctrl, curve: Curves.easeOut);
+    _ctrl.forward();
+  }
+
+  @override
+  void didUpdateWidget(covariant _StatsHeroBody oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.stats.acceptedFare != widget.stats.acceptedFare ||
+        oldWidget.range != widget.range) {
+      _ctrl.forward(from: 0.0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  String _labelForRange(StatsRange range) => switch (range) {
+        StatsRange.today => 'Today',
+        StatsRange.last7Days => 'Last 7 days',
+        StatsRange.last30Days => 'Last 30 days',
+        StatsRange.allTime => 'All time',
+      };
 
   @override
   Widget build(BuildContext context) {
+    final stats = widget.stats;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -158,16 +204,33 @@ class _StatsHeroBody extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text('Accepted fare',
-                      style: TextStyle(color: Colors.white70, fontSize: 11)),
+                  Row(
+                    children: [
+                      const Text('Accepted fare',
+                          style: TextStyle(color: Colors.white70, fontSize: 11)),
+                      const SizedBox(width: 6),
+                      Text(_labelForRange(widget.range).toUpperCase(),
+                          style: const TextStyle(
+                              color: Colors.white54,
+                              fontSize: 9,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.4)),
+                    ],
+                  ),
                   const SizedBox(height: 1),
-                  Text(
-                    '£${stats.acceptedFare.toStringAsFixed(2)}',
-                    style: TextStyle(
-                        color: StatusColors.accepted,
-                        fontWeight: FontWeight.w800,
-                        fontSize: 22,
-                        letterSpacing: -0.5),
+                  AnimatedBuilder(
+                    animation: _fade,
+                    builder: (context, _) => Opacity(
+                      opacity: _fade.value,
+                      child: Text(
+                        '£${stats.acceptedFare.toStringAsFixed(2)}',
+                        style: TextStyle(
+                            color: StatusColors.accepted,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 22,
+                            letterSpacing: -0.5),
+                      ),
+                    ),
                   ),
                 ],
               ),

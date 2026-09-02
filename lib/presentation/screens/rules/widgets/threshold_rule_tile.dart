@@ -140,7 +140,7 @@ class _ThresholdRuleTileState extends State<ThresholdRuleTile> {
     final active = widget.forceEnabled || rule.enabled;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -164,8 +164,8 @@ class _ThresholdRuleTileState extends State<ThresholdRuleTile> {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: (widget.emphasized
-                              ? theme.textTheme.titleLarge
-                              : theme.textTheme.titleMedium)
+                              ? theme.textTheme.titleMedium
+                              : theme.textTheme.titleSmall)
                           ?.copyWith(fontWeight: FontWeight.w700),
                     ),
                     const SizedBox(height: 2),
@@ -197,7 +197,7 @@ class _ThresholdRuleTileState extends State<ThresholdRuleTile> {
             alignment: Alignment.topCenter,
             child: active
                 ? Padding(
-                    padding: const EdgeInsets.only(top: 8, left: 44),
+                    padding: const EdgeInsets.only(top: 6, left: 38),
                     child: TextField(
                       controller: _controller,
                       keyboardType:
@@ -347,7 +347,7 @@ class RuleIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final diameter = large ? 40.0 : 32.0;
+    final diameter = large ? 34.0 : 28.0;
     if (!active) {
       final muted = color ?? scheme.onSurfaceVariant;
       return Container(

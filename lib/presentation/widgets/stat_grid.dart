@@ -25,12 +25,10 @@ class StatGrid extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(child: tiles[i]),
-              const SizedBox(width: 10),
-              Expanded(
-                child: i + 1 < tiles.length
-                    ? tiles[i + 1]
-                    : const SizedBox.shrink(),
-              ),
+              if (i + 1 < tiles.length) ...[
+                const SizedBox(width: 10),
+                Expanded(child: tiles[i + 1]),
+              ],
             ],
           ),
         ],

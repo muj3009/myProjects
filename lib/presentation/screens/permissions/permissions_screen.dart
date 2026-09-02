@@ -76,6 +76,9 @@ class _PermissionsScreenState extends ConsumerState<PermissionsScreen>
 
     final channel = ref.read(automationMethodChannelProvider);
 
+    final granted = _items.where((i) => i.isGranted).length;
+    final total = _items.length;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Permissions & setup')),
       body: _loading
@@ -85,6 +88,7 @@ class _PermissionsScreenState extends ConsumerState<PermissionsScreen>
               child: ListView(
                 padding: const EdgeInsets.all(14),
                 children: [
+                  _PermissionsProgressHeader(granted: granted, total: total),
                   for (final item in _items)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 8),
@@ -164,6 +168,57 @@ class _PermissionsScreenState extends ConsumerState<PermissionsScreen>
                 ],
               ),
             ),
+    );
+  }
+}
+
+class _PermissionsProgressHeader extends StatelessWidget {
+  const _PermissionsProgressHeader({required this.granted, required this.total});
+
+  final int granted;
+  final int total;
+
+  @override
+  Widget build(BuildContext context) {
+    final allGranted = granted == total;
+    final progress = total > 0 ? granted / total : 0.0;
+    final colorScheme = Theme.of(context).colorScheme;
+    final barColor = allGranted ? StatusColors.accepted : colorScheme.primary;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                allGranted ? Icons.check_circle : Icons.info_outline,
+                size: 18,
+                color: barColor,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                '$granted of $total permissions enabled',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: allGranted
+                          ? StatusColors.accepted
+                          : colorScheme.onSurface,
+                    ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: progress,
+              minHeight: 6,
+              backgroundColor: colorScheme.surfaceContainerHighest,
+              color: barColor,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

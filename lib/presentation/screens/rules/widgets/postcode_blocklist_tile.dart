@@ -75,7 +75,7 @@ class _PostcodeBlocklistTileState extends State<PostcodeBlocklistTile> {
     final count = config.blockedPrefixes.length;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -130,7 +130,7 @@ class _PostcodeBlocklistTileState extends State<PostcodeBlocklistTile> {
             alignment: Alignment.topCenter,
             child: config.enabled
                 ? Padding(
-                    padding: const EdgeInsets.only(top: 8, left: 44),
+                    padding: const EdgeInsets.only(top: 6, left: 38),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [

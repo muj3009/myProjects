@@ -94,12 +94,15 @@ class _JobHistoryScreenState extends ConsumerState<JobHistoryScreen> {
                   ? const Center(child: CircularProgressIndicator())
                   : state.jobs.isEmpty
                       ? const _EmptyState()
-                      : ListView.builder(
-                          padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
-                          itemCount: state.jobs.length,
-                          itemBuilder: (context, i) => Padding(
-                            padding: const EdgeInsets.only(bottom: 8),
-                            child: _JobHistoryTile(job: state.jobs[i]),
+                      : RefreshIndicator(
+                          onRefresh: () => ref.read(jobHistoryControllerProvider.notifier).refresh(),
+                          child: ListView.builder(
+                            padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+                            itemCount: state.jobs.length,
+                            itemBuilder: (context, i) => Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: _JobHistoryTile(job: state.jobs[i]),
+                            ),
                           ),
                         ),
             ),
@@ -229,7 +232,7 @@ class _EmptyState extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              'Jobs JobFilter sees while automation is running will show up here.',
+              'Jobs that JobFilter sees while automation is running will show up here.',
               textAlign: TextAlign.center,
               style: Theme.of(context)
                   .textTheme
@@ -250,12 +253,18 @@ class _PlatformBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isUber = platform == PlatformType.uber;
-    final color = isUber ? Colors.black : const Color(0xFF34D186);
+    // Uber uses a dark brand color that is nearly invisible on the dark
+    // card background — lift it to a lighter gold that still reads as
+    // "Uber" but holds contrast in dark mode.
+    final color = isUber
+        ? (isDark ? const Color(0xFFE8C64A) : Colors.black)
+        : const Color(0xFF34D186);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
+        color: color.withValues(alpha: isUber && isDark ? 0.18 : 0.12),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(

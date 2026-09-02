@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
@@ -11,6 +12,7 @@ import '../../../domain/enums/job_decision.dart';
 import '../../../domain/enums/platform_type.dart';
 import '../../../domain/enums/rule_result.dart';
 import '../../widgets/decision_badge.dart';
+import '../../widgets/gradient_button.dart';
 import '../../widgets/section_card.dart';
 
 /// Simulation / Test Mode (spec section 33). Does NOT touch Uber/Bolt or any
@@ -78,6 +80,7 @@ class _SimulationScreenState extends ConsumerState<SimulationScreen> {
       );
       _outcome = outcome;
     });
+    HapticFeedback.lightImpact();
   }
 
   @override
@@ -132,17 +135,36 @@ class _SimulationScreenState extends ConsumerState<SimulationScreen> {
                   ),
                 ),
                 const SizedBox(height: 10),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                      onPressed: _runTest, child: const Text('TEST JOB')),
+                GradientButton(
+                  icon: Icons.play_circle_outline,
+                  label: 'TEST JOB',
+                  baseColor: Color.lerp(AppTheme.ink, StatusColors.accepted, 0.55)!,
+                  onPressed: _runTest,
                 ),
               ],
             ),
           ),
           if (_outcome != null && _job != null) ...[
             const SizedBox(height: 16),
-            _ResultCard(job: _job!, outcome: _outcome!),
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              switchInCurve: Curves.easeOut,
+              transitionBuilder: (child, animation) => FadeTransition(
+                opacity: animation,
+                child: SlideTransition(
+                  position: Tween<Offset>(
+                    begin: const Offset(0, 0.06),
+                    end: Offset.zero,
+                  ).animate(animation),
+                  child: child,
+                ),
+              ),
+              child: _ResultCard(
+                key: ValueKey(_job!.id),
+                job: _job!,
+                outcome: _outcome!,
+              ),
+            ),
           ],
         ],
       ),
@@ -169,7 +191,7 @@ class _NumberField extends StatelessWidget {
 }
 
 class _ResultCard extends StatelessWidget {
-  const _ResultCard({required this.job, required this.outcome});
+  const _ResultCard({super.key, required this.job, required this.outcome});
 
   final TaxiJob job;
   final DecisionOutcome outcome;

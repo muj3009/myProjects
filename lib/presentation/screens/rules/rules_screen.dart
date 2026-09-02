@@ -269,7 +269,7 @@ class _FeaturedRuleCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: primary.withValues(alpha: 0.25)),
       ),
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 1),
       child: child,
     );
   }
