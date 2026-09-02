@@ -56,10 +56,13 @@ class _HighValueJobTileState extends State<HighValueJobTile> {
     }
   }
 
-  static const _debounceDelay = Duration(milliseconds: 400);
+  static const _debounceDelay = Duration(milliseconds: 160);
   Timer? _fareDebounce;
   Timer? _rateDebounce;
   Timer? _counterOfferRateDebounce;
+  double? _lastFare;
+  double? _lastRate;
+  double? _lastCounterOfferRate;
 
   @override
   void dispose() {
@@ -82,18 +85,33 @@ class _HighValueJobTileState extends State<HighValueJobTile> {
   }
 
   void _commitFare(String raw) {
+    final parsed = double.tryParse(raw);
+    if (parsed == null || parsed == _lastFare) return;
     _fareDebounce?.cancel();
-    _fareDebounce = Timer(_debounceDelay, () => _commitFareNow(raw));
+    _fareDebounce = Timer(_debounceDelay, () {
+      _commitFareNow(raw);
+      _lastFare = double.tryParse(raw);
+    });
   }
 
   void _commitRate(String raw) {
+    final parsed = double.tryParse(raw);
+    if (parsed == null || parsed == _lastRate) return;
     _rateDebounce?.cancel();
-    _rateDebounce = Timer(_debounceDelay, () => _commitRateNow(raw));
+    _rateDebounce = Timer(_debounceDelay, () {
+      _commitRateNow(raw);
+      _lastRate = double.tryParse(raw);
+    });
   }
 
   void _commitCounterOfferRate(String raw) {
+    final parsed = double.tryParse(raw);
+    if (parsed == null || parsed == _lastCounterOfferRate) return;
     _counterOfferRateDebounce?.cancel();
-    _counterOfferRateDebounce = Timer(_debounceDelay, () => _commitCounterOfferRateNow(raw));
+    _counterOfferRateDebounce = Timer(_debounceDelay, () {
+      _commitCounterOfferRateNow(raw);
+      _lastCounterOfferRate = double.tryParse(raw);
+    });
   }
 
   void _commitFareNow(String raw) {

@@ -88,15 +88,17 @@ class _ThresholdRuleTileState extends State<ThresholdRuleTile> {
     if (_debounce?.isActive ?? false) {
       _debounce!.cancel();
       _commitNow(_controller.text);
+      _lastCommitted = double.tryParse(_controller.text);
     }
     _controller.dispose();
     super.dispose();
   }
 
   static const double _sensibleMaximum = 1000.0;
-  static const _debounceDelay = Duration(milliseconds: 400);
+  static const _debounceDelay = Duration(milliseconds: 160);
 
   Timer? _debounce;
+  double? _lastCommitted;
 
   // Every call used to flow straight through to widget.onChanged on every
   // keystroke, which the caller (RulesScreen -> SettingsController.update)
@@ -104,11 +106,19 @@ class _ThresholdRuleTileState extends State<ThresholdRuleTile> {
   // write of the entire settings object — real, visible typing lag once the
   // rule set grew past a handful of fields. Validation still runs
   // immediately (cheap, local setState only); only the expensive commit is
-  // debounced until typing actually pauses.
+  // debounced until typing actually pauses. A commit is skipped entirely
+  // when the value is unchanged from the last commit, so re-typing the same
+  // number (or the rebuild resetting the field) doesn't trigger another
+  // save + whole-screen rebuild.
   void _commit(String raw) {
     if (!_validate(raw)) return;
+    final parsed = double.tryParse(raw);
+    if (parsed == null || parsed == _lastCommitted) return;
     _debounce?.cancel();
-    _debounce = Timer(_debounceDelay, () => _commitNow(raw));
+    _debounce = Timer(_debounceDelay, () {
+      _commitNow(raw);
+      _lastCommitted = double.tryParse(raw);
+    });
   }
 
   bool _validate(String raw) {
