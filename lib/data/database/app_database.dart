@@ -13,7 +13,7 @@ class AppDatabase {
 
   static final AppDatabase instance = AppDatabase._();
 
-  static const int schemaVersion = 2;
+  static const int schemaVersion = 3;
   static const String jobsTable = 'jobs';
   static const String settingsTable = 'settings';
 
@@ -67,6 +67,7 @@ class AppDatabase {
             platform_selection TEXT NOT NULL,
             distance_unit TEXT NOT NULL,
             distance_calculation_mode TEXT NOT NULL,
+            theme_mode TEXT NOT NULL,
             currency_code TEXT NOT NULL,
             rules_json TEXT NOT NULL,
             platform_overrides_json TEXT NOT NULL
@@ -82,6 +83,13 @@ class AppDatabase {
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) {
           await db.execute('ALTER TABLE $jobsTable ADD COLUMN destination_postcode TEXT');
+        }
+        // schemaVersion 2 -> 3: the user-selectable theme mode. Back-filled
+        // to the system default so existing installs keep following the OS
+        // until the driver explicitly changes it.
+        if (oldVersion < 3) {
+          await db.execute(
+              "ALTER TABLE $settingsTable ADD COLUMN theme_mode TEXT NOT NULL DEFAULT 'system'");
         }
       },
     );

@@ -1,4 +1,4 @@
-package com.jobfilter.app.automation
+﻿package com.jobfilter.app.automation
 
 import android.app.Activity
 import android.content.ComponentName

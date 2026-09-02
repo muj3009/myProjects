@@ -72,6 +72,24 @@ class ParsedTextUtils {
     return null;
   }
 
+  /// Finds every currency-marked amount in [text] that passes the plausible
+  /// fare cap, unlike [extractFare] which returns only the first. Used when a
+  /// caller needs to know whether a screen shows more than one money figure
+  /// (e.g. a persistent daily-earnings summary sitting beside a genuine job
+  /// card's own fare) rather than just the leading amount.
+  static List<double> extractAllFares(String text) {
+    final results = <double>[];
+    for (final pattern in [_poundPrefixed, _gbpSuffixed, _gbpPrefixed]) {
+      for (final m in pattern.allMatches(text)) {
+        final value = _parseDecimal(m.group(1)!);
+        if (value != null && value <= _maxPlausibleFare) {
+          results.add(value);
+        }
+      }
+    }
+    return results;
+  }
+
   /// Finds every distance token in [text] with its match position and
   /// normalized miles value, so callers can use surrounding words (e.g.
   /// "Pickup", "Trip") to tell pickup distance apart from trip distance.

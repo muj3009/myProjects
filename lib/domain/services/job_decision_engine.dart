@@ -72,6 +72,9 @@ class JobDecisionEngine {
         ? job.fare! / (job.estimatedDurationMinutes! / 60.0)
         : null;
 
+    // Check if this is a multistop job (e.g., "1 stop", "2 stops", etc.)
+    final isMultistop = _isMultistopJob(job);
+
     // Driver request: a "high-value job" — at or above a fare floor and a
     // £/mile floor — is accepted immediately, ignoring every other rule
     // (pickup distance, trip distance, minimum fare, hourly rate). The one
@@ -145,13 +148,30 @@ class JobDecisionEngine {
         );
       }
 
+      // For multistop jobs, skip all counter-offer logic and reject if minimum £/mile fails
+      if (isMultistop &&
+          failed.length == 1 &&
+          failed.first.ruleName == const MinimumPoundsPerMileRule().name) {
+        return DecisionOutcome(
+          decision: JobDecision.rejected,
+          evaluations: evaluations,
+          reason: _bulletList([
+            failed.first.detail,
+            'Multistop job requires £/mile at or above your minimum of £${ruleConfig.minimumPoundsPerMile.value.toStringAsFixed(2)}/mile — counter-offers not allowed for multistop jobs',
+          ]),
+          poundsPerMile: poundsPerMile,
+          estimatedHourlyRate: hourlyRate,
+        );
+      }
+
       // Driver request: a Bolt job that fails ONLY on £/mile, and isn't too
       // far under the threshold, gets a counter-offer instead of an outright
       // reject — see RuleConfig.counterOfferBandPercent's doc comment.
       // Scoped to exactly one failing rule so every other rule (postcode
       // blocklist, max distance, etc.) still overrides this unconditionally,
       // same as any other fail.
-      if (job.platform == PlatformType.bolt &&
+      if (!isMultistop &&
+          job.platform == PlatformType.bolt &&
           ruleConfig.counterOfferBandPercent.enabled &&
           failed.length == 1 &&
           failed.first.ruleName == const MinimumPoundsPerMileRule().name &&
@@ -179,8 +199,9 @@ class JobDecisionEngine {
       // always worth an automatic maximum counter-offer rather than an
       // outright reject, regardless of how far under the driver's minimum
       // £/mile it is. Independent of the band-percent rescue above — either
-      // one qualifying is enough.
-      if (job.platform == PlatformType.bolt &&
+      // one qualifying is enough. Skip for multistop jobs.
+      if (!isMultistop &&
+          job.platform == PlatformType.bolt &&
           ruleConfig.lowFareCounterOfferThreshold.enabled &&
           failed.length == 1 &&
           failed.first.ruleName == const MinimumPoundsPerMileRule().name &&
@@ -240,5 +261,15 @@ class JobDecisionEngine {
         .where((line) => line != null && line.isNotEmpty)
         .map((line) => '• $line')
         .join('\n');
+  }
+
+  /// Checks if a job is a multistop job by looking for "X stop" or "X stops" pattern
+  /// in the raw detected text (e.g., "1 stop", "2 stops", "3 stops").
+  bool _isMultistopJob(TaxiJob job) {
+    if (job.rawDetectedText == null) return false;
+    final lower = job.rawDetectedText!.toLowerCase();
+    // Match patterns like "1 stop", "2 stops", "3 stops", etc.
+    final multistopRegex = RegExp(r'\b\d+\s+stops?\b');
+    return multistopRegex.hasMatch(lower);
   }
 }

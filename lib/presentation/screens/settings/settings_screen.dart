@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../application/state/job_history_controller.dart';
+import '../../../application/state/navigation_controller.dart';
 import '../../../application/state/settings_controller.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../domain/enums/distance_unit.dart';
@@ -48,6 +49,12 @@ class SettingsScreen extends ConsumerWidget {
     String _labelForDistance(DistanceUnit d) => switch (d) {
       DistanceUnit.miles => 'Miles',
       DistanceUnit.kilometres => 'Kilometres',
+    };
+
+    String _labelForTheme(ThemeMode m) => switch (m) {
+      ThemeMode.system => 'System',
+      ThemeMode.light => 'Light',
+      ThemeMode.dark => 'Dark',
     };
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
@@ -144,10 +151,11 @@ class SettingsScreen extends ConsumerWidget {
                     diameter: 18,
                     iconSize: 10,
                   ),
-                  showCheckmark: false,
+                  showCheckmark: true,
+                  checkmarkColor: Colors.white,
+                  selectedColor: _colorForPlatform(platform),
                   label: Text(_labelForPlatform(platform)),
                   selected: settings.platformSelection == platform,
-                  selectedColor: _colorForPlatform(platform).withValues(alpha: 0.18),
                   onSelected: (_) => controller.update(
                     (s) => s.copyWith(platformSelection: platform),
                   ),
@@ -180,19 +188,28 @@ class SettingsScreen extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 6),
-          Text('App name', style: Theme.of(context).textTheme.titleMedium),
+          Text('Theme', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 2),
-          SectionCard(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            child: TextFormField(
-              initialValue: settings.appName,
-              onFieldSubmitted: (value) {
-                final trimmed = value.trim();
-                if (trimmed.isNotEmpty) {
-                  controller.update((s) => s.copyWith(appName: trimmed));
-                }
-              },
-            ),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              for (final mode in [
+                ThemeMode.system,
+                ThemeMode.light,
+                ThemeMode.dark
+              ]) ...[
+                ChoiceChip(
+                  label: Text(_labelForTheme(mode)),
+                  selected: settings.themeMode == mode,
+                  selectedColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.18),
+                  onSelected: (_) => controller.update(
+                    (s) => s.copyWith(themeMode: mode),
+                  ),
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+              ],
+            ],
           ),
           const SizedBox(height: 6),
           SectionCard(
@@ -203,7 +220,8 @@ class SettingsScreen extends ConsumerWidget {
                   icon: Icons.rule_folder_outlined,
                   title: 'Advanced rules',
                   subtitle: 'Pickup, min fare, hourly rate, etc.',
-                  onTap: () {},
+                  onTap: () =>
+                      ref.read(rootNavigationIndexProvider.notifier).state = 3,
                 ),
                 const Divider(height: 1, indent: 44),
                 _SettingsLinkTile(

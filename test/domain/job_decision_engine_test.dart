@@ -122,14 +122,14 @@ void main() {
       expect(outcome.decision, JobDecision.rejected);
     });
 
-    test('disabled rules are skipped entirely', () {
+    test('minimum £/mile rule is always on — even if persisted settings have it disabled', () {
       final settings = DriverSettings(
         rules: const RuleConfig(
           minimumPoundsPerMile: ThresholdRule(enabled: false, value: 2.00),
         ),
       );
       final outcome = engine.evaluate(_job(fare: 1, tripDistanceMiles: 100), settings);
-      expect(outcome.decision, JobDecision.accepted);
+      expect(outcome.decision, JobDecision.rejected);
     });
   });
 

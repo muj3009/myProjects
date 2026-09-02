@@ -97,6 +97,18 @@ class BoltJobParser implements JobParser {
     'total earnings',
   ];
 
+  // Bolt's driver home screen always shows the daily earnings summary in
+  // the top-centre as exactly "£X.XX Today" (e.g. "£0.00 Today" before the
+  // driver starts, "£44.00 Today" after). Confirmed constant — Bolt never
+  // shows "Yesterday" or any other day label there, so only "Today" is
+  // matched. This persistent top chrome carries a fare-shaped figure, and
+  // the rest of the home screen can loosely match a card keyword and even a
+  // distance token, so without this exclusion the summary alone sometimes
+  // passed every [jobCardDetected] check and was treated as a live job
+  // (rejected/accepted) when no card was on screen at all.
+  static final RegExp _dailyEarningsSummary =
+      RegExp(r'£\s?\d+(?:[.,]\d{1,2})?\s+Today\b', caseSensitive: false);
+
   // Real device screens showed multiple simultaneous offers ("Available
   // trips" listing more than one card at once). Each card starts with this
   // ride-type badge on its own line, so splitting here is what lets every
@@ -135,13 +147,20 @@ class BoltJobParser implements JobParser {
     // fare; the dashboard summary never does, so requiring that too is what
     // actually distinguishes the two — the £/mile: null on every phantom
     // detection was the giveaway this was missing.
+    final others = ParsedTextUtils.extractAllFares(segment);
     final jobCardDetected = fare != null &&
         fare > 0 &&
         distances.isNotEmpty &&
         _jobCardKeywords.any(lower.contains) &&
         !_historyScreenExclusionPhrases.any(lower.contains) &&
         !_expiredCardExclusionPhrases.any(lower.contains) &&
-        !_dashboardExclusionPhrases.any(lower.contains);
+        !_dashboardExclusionPhrases.any(lower.contains) &&
+        // The dashboard's "£X.XX Today" summary is only excluded when it is
+        // the segment's *sole* fare. A [parse] fallback can sweep the summary
+        // into the same segment as a genuine single card that lacks an
+        // "Instant" badge (no split point), leaving two fares side by side —
+        // in that case the summary check must not nuke the real card.
+        !(_dailyEarningsSummary.hasMatch(segment) && others.length == 1);
     // Not `extractDurationMinutes` (single first-match) — Bolt's card shows
     // pickup duration before trip duration the same way Uber's does, so
     // taking the first match alone fed only the pickup leg's minutes into

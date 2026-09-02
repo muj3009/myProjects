@@ -204,6 +204,10 @@ class AutomationController extends StateNotifier<AutomationState> {
   Future<void> _pollUberOffer() async {
     if (!state.isActive || _diagnosticsPaused) return;
     final settings = _ref.read(settingsControllerProvider);
+    // Same platform-selection guard the event-driven path applies in
+    // [_handleDetectedText] — otherwise the timer keeps showing the Uber
+    // accept/reject badge even when the driver has only selected Bolt.
+    if (!settings.platformSelection.allows(PlatformType.uber)) return;
     await _processUberVisual(settings);
   }
 

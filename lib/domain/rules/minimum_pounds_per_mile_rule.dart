@@ -28,7 +28,12 @@ class MinimumPoundsPerMileRule implements Rule {
   bool get mandatory => true;
 
   @override
-  bool isEnabled(RuleConfigView settings) => settings.rules.minimumPoundsPerMile.enabled;
+  bool isEnabled(RuleConfigView settings) {
+    // Always on — this rule must never be disabled: the near-miss and
+    // low-fare counter-offer rescues (which depend on the £/mile rule
+    // being the sole failing rule) require it to evaluate first.
+    return true;
+  }
 
   @override
   RuleEvaluation evaluate(TaxiJob job, RuleConfigView settings) {

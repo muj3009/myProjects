@@ -10,14 +10,14 @@ class JobFilterApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final appName = ref.watch(settingsControllerProvider).appName;
+    final settings = ref.watch(settingsControllerProvider);
 
     return MaterialApp(
-      title: appName,
+      title: settings.appName,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
-      themeMode: ThemeMode.system,
+      themeMode: settings.themeMode,
       home: const RootNavigation(),
     );
   }

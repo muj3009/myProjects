@@ -28,6 +28,7 @@ class ThresholdRuleTile extends StatefulWidget {
     this.icon = Icons.tune,
     this.emphasized = false,
     this.color,
+    this.forceEnabled = false,
   });
 
   final String title;
@@ -48,6 +49,12 @@ class ThresholdRuleTile extends StatefulWidget {
   /// bigger icon/title and the caller wraps it in a tinted "featured" card,
   /// so it reads as the anchor of the page rather than one row among seven.
   final bool emphasized;
+
+  /// When true, the Switch is always ON and the user cannot toggle it off.
+  /// Used for the minimum £/mile rule: it must always evaluate so that
+  /// the near-miss and low-fare counter-offer rescues (which depend on the
+  /// £/mile rule being the sole failing rule) can never become dead code.
+  final bool forceEnabled;
 
   @override
   State<ThresholdRuleTile> createState() => _ThresholdRuleTileState();
@@ -130,6 +137,7 @@ class _ThresholdRuleTileState extends State<ThresholdRuleTile> {
     final theme = Theme.of(context);
     final valueText =
         '${widget.unitPrefix}${rule.value.toStringAsFixed(2)}${widget.unitSuffix}';
+    final active = widget.forceEnabled || rule.enabled;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
@@ -141,7 +149,7 @@ class _ThresholdRuleTileState extends State<ThresholdRuleTile> {
             children: [
               RuleIcon(
                 icon: widget.icon,
-                active: rule.enabled,
+                active: active,
                 large: widget.emphasized,
                 color: widget.color,
               ),
@@ -169,15 +177,17 @@ class _ThresholdRuleTileState extends State<ThresholdRuleTile> {
               // is always visible right below, so a badge repeating the same
               // number would just steal the width the title needs to avoid
               // wrapping mid-word.
-              if (rule.enabled && !widget.emphasized) ...[
+              if (active && !widget.emphasized) ...[
                 const SizedBox(width: 6),
                 ValueBadge(text: valueText),
               ],
               const SizedBox(width: 2),
               Switch(
-                value: rule.enabled,
-                onChanged: (enabled) =>
-                    widget.onChanged(rule.copyWith(enabled: enabled)),
+                value: active,
+                onChanged: widget.forceEnabled
+                    ? null
+                    : (enabled) =>
+                        widget.onChanged(rule.copyWith(enabled: enabled)),
               ),
             ],
           ),
@@ -185,7 +195,7 @@ class _ThresholdRuleTileState extends State<ThresholdRuleTile> {
             duration: const Duration(milliseconds: 180),
             curve: Curves.easeOut,
             alignment: Alignment.topCenter,
-            child: rule.enabled
+            child: active
                 ? Padding(
                     padding: const EdgeInsets.only(top: 8, left: 44),
                     child: TextField(

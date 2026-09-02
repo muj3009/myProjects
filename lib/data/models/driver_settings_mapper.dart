@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
+
 import '../../domain/entities/driver_settings.dart';
 import '../../domain/entities/rule_config.dart';
 import '../../domain/enums/distance_unit.dart';
@@ -21,6 +23,7 @@ class DriverSettingsMapper {
       'platform_selection': settings.platformSelection.name,
       'distance_unit': settings.distanceUnit.name,
       'distance_calculation_mode': settings.distanceCalculationMode.name,
+      'theme_mode': settings.themeMode.name,
       'currency_code': settings.currencyCode,
       'rules_json': jsonEncode(_ruleConfigToJson(settings.rules)),
       'platform_overrides_json': jsonEncode({
@@ -31,20 +34,31 @@ class DriverSettingsMapper {
   }
 
   static DriverSettings fromRow(Map<String, Object?> row) {
-    final overridesRaw = jsonDecode(row['platform_overrides_json'] as String) as Map<String, dynamic>;
-    return DriverSettings(
+    final overridesRaw = jsonDecode(row['platform_overrides_json'] as String) as Map<String, dynamic>;    return DriverSettings(
       appName: row['app_name'] as String,
       automationEnabled: (row['automation_enabled'] as int) == 1,
-      platformSelection: PlatformSelection.values.byName(row['platform_selection'] as String),
-      distanceUnit: DistanceUnit.values.byName(row['distance_unit'] as String),
+      platformSelection: PlatformSelection.values.byName(row['platform_selection'] as String),      distanceUnit: DistanceUnit.values.byName(row['distance_unit'] as String),
       distanceCalculationMode:
           DistanceCalculationMode.values.byName(row['distance_calculation_mode'] as String),
+      themeMode: _themeModeFromRow(row['theme_mode']),
       currencyCode: row['currency_code'] as String,
       rules: _ruleConfigFromJson(jsonDecode(row['rules_json'] as String) as Map<String, dynamic>),
       platformOverrides: {
         for (final entry in overridesRaw.entries)
           PlatformType.values.byName(entry.key): _ruleConfigFromJson(entry.value as Map<String, dynamic>),
       },
+    );
+  }
+
+  /// Safely resolves the persisted [ThemeMode] stored as its `.name` string
+  /// (e.g. "system", "light", "dark"). Falls back to [ThemeMode.system] if
+  /// the column is absent/null or holds an unknown value — defensive for any
+  /// row written by an app version before the theme setting existed.
+  static ThemeMode _themeModeFromRow(Object? raw) {
+    if (raw is! String) return ThemeMode.system;
+    return ThemeMode.values.firstWhere(
+      (mode) => mode.name == raw,
+      orElse: () => ThemeMode.system,
     );
   }
 

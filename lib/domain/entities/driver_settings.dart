@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
 
 import '../enums/distance_unit.dart';
 import '../enums/platform_type.dart';
@@ -14,6 +15,7 @@ class DriverSettings extends Equatable {
     this.platformSelection = PlatformSelection.both,
     this.distanceUnit = DistanceUnit.miles,
     this.distanceCalculationMode = DistanceCalculationMode.tripDistance,
+    this.themeMode = ThemeMode.system,
     this.rules = const RuleConfig(),
     this.platformOverrides = const {},
     this.currencyCode = 'GBP',
@@ -24,6 +26,9 @@ class DriverSettings extends Equatable {
   final PlatformSelection platformSelection;
   final DistanceUnit distanceUnit;
   final DistanceCalculationMode distanceCalculationMode;
+
+  /// How the app chooses light vs dark: follow the system, or force one.
+  final ThemeMode themeMode;
 
   /// Global (default) rule thresholds.
   final RuleConfig rules;
@@ -44,6 +49,7 @@ class DriverSettings extends Equatable {
     PlatformSelection? platformSelection,
     DistanceUnit? distanceUnit,
     DistanceCalculationMode? distanceCalculationMode,
+    ThemeMode? themeMode,
     RuleConfig? rules,
     Map<PlatformType, RuleConfig>? platformOverrides,
     String? currencyCode,
@@ -54,6 +60,7 @@ class DriverSettings extends Equatable {
       platformSelection: platformSelection ?? this.platformSelection,
       distanceUnit: distanceUnit ?? this.distanceUnit,
       distanceCalculationMode: distanceCalculationMode ?? this.distanceCalculationMode,
+      themeMode: themeMode ?? this.themeMode,
       rules: rules ?? this.rules,
       platformOverrides: platformOverrides ?? this.platformOverrides,
       currencyCode: currencyCode ?? this.currencyCode,
@@ -67,6 +74,7 @@ class DriverSettings extends Equatable {
         platformSelection,
         distanceUnit,
         distanceCalculationMode,
+        themeMode,
         rules,
         platformOverrides,
         currencyCode,

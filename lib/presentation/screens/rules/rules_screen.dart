@@ -55,13 +55,14 @@ class RulesScreen extends ConsumerWidget {
           _FeaturedRuleCard(
             child: ThresholdRuleTile(
               title: 'Minimum £ per mile',
-              subtitle: 'Core filter — reject any job paying less than this rate. This is your main quality threshold.',
+              subtitle: 'Core filter — always active. Rejects any job paying less than this rate.',
               unitPrefix: '£',
               unitSuffix: '/mi',
               icon: Icons.attach_money,
               rule: rules.minimumPoundsPerMile,
               emphasized: true,
               color: const Color(0xFF4C6EF5),
+              forceEnabled: true,
               onChanged: (r) =>
                   updateRules((c) => c.copyWith(minimumPoundsPerMile: r)),
             ),
